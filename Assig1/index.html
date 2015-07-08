@@ -3,6 +3,28 @@
     <head>
         <title>Assignment 1 | Interactive Computer Graphics with WebGL</title>
         <link rel="stylesheet" rev="stylesheet" href="../Common/main.css" type="text/css" />
+        <!-- Scripts -->
+        <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+        <script type="text/javascript" src="../Common/initShaders.js"></script>
+        <script type="text/javascript" src="../Common/MV.js"></script>
+        <script type="text/javascript" src="Assig1.js"></script>
+        <!-- GL Shaders; basic -->
+        <script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+
+void main() {
+    gl_Position = vPosition;
+}
+        </script>
+        <script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main() {
+    gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 );
+}
+        </script>
+        
+        
     </head>
     <body>
         <header>
