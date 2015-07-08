@@ -1,10 +1,11 @@
 body {
    
     background-color: rgb(19,19,19);
-    color: rgb(200,200,200);
+    color: rgb(50,50,50);
     font-family: "Avenir Next", "Helvetica Neue", "sans-serif";
+    font-size: 12pt;
     padding:0px;
-    width: 100%;
+    width: 99%;
     }    
     
 header{
@@ -20,13 +21,27 @@ header{
 /* IE6-9 */
     padding: 1em;
     color: rgb(220,220,225);
-    text-shadow: 0px 0px 7px rgb(0,0,255);
+/*     text-shadow: 0px 0px 7px rgb(0,0,255); */
     margin: -10px;
     width:100%;
     letter-spacing: 1px;
+    font-size:10pt;
     }
 header * {
     margin-left: 3em;
+    }
+a:link {
+    text-decoration:none;
+    color: rgb(20,150,200);
+    }
+a:visited {
+    color: rgb(20,70,200);
+    }
+a:hover {
+    color: rgb(20,170,200);
+}
+a:active {
+    color: rgb(20,200,200);
     }
 
 article {
@@ -34,23 +49,19 @@ article {
     border: 2px outset rgb(240,240,140);
     padding: 1em;
     
-    background: rgba(97,98,99,1);
-background: -moz-linear-gradient(-45deg, rgba(97,98,99,1) 0%, rgba(135,140,143,1) 46%, rgba(146,159,166,1) 53%, rgba(41,44,46,1) 100%);
-background: -webkit-gradient(left top, right bottom, color-stop(0%, rgba(97,98,99,1)), color-stop(46%, rgba(135,140,143,1)), color-stop(53%, rgba(146,159,166,1)), color-stop(100%, rgba(41,44,46,1)));
-background: -webkit-linear-gradient(-45deg, rgba(97,98,99,1) 0%, rgba(135,140,143,1) 46%, rgba(146,159,166,1) 53%, rgba(41,44,46,1) 100%);
-background: -o-linear-gradient(-45deg, rgba(97,98,99,1) 0%, rgba(135,140,143,1) 46%, rgba(146,159,166,1) 53%, rgba(41,44,46,1) 100%);
-background: -ms-linear-gradient(-45deg, rgba(97,98,99,1) 0%, rgba(135,140,143,1) 46%, rgba(146,159,166,1) 53%, rgba(41,44,46,1) 100%);
-background: linear-gradient(135deg, rgba(97,98,99,1) 0%, rgba(135,140,143,1) 46%, rgba(146,159,166,1) 53%, rgba(41,44,46,1) 100%);
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#616263', endColorstr='#292c2e', GradientType=1 );
+    background: rgba(220,220,220,1);
     
     border-radius: 180px/60px;
-    text-shadow: 0px 0px 2px black;
     box-shadow: 1px 2px 6px black;
-    /* display: inline-block; */ /* make width shrink-wrapped.*/
+    display: inline-block; /* make width shrink-wrapped.*/
+    }
+article#controls{
+    position:fixed;
+    top:200px;
     }
 article h3 {
-    color: rgb(200,200,80);
-    text-shadow: 0px 0px 7px black;
+    color: rgb(80,80,80);
+    margin-left:3em;
     }
     
 dd:before{
