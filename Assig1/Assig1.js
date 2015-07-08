@@ -1,6 +1,6 @@
 //vars
 var points = [];
-var numTimesToSubdivide = 6;
+var numTimesToSubdivide = 5;
     /* initial triangle */
 var vertices = [
     vec2(-1,-1),
@@ -27,7 +27,8 @@ window.onload = function init(){
     var vPosition = gl.getAttribLocation( program,"vPosition");
     gl.vertexAttribPointer( vPosition,2,gl.FLOAT,false,0,0);
     gl.enableVertexAttribArray(vPosition);
-
+    points = twist(points,0,0);
+    
     render()
 };
 
@@ -46,13 +47,18 @@ function tessellate(a,b,c,count){
     var ab = mix(a,b,0.5);
     var ac = mix(a,c,0.5);
     var bc = mix(b,c,0.5);
-    count--;
+   // count--;
   //new triangles
     tessellate(a,ab,ac,count-1);
     tessellate(c,ac,bc,count-1);
     tessellate(b,bc,ab,count-1);
     tessellate(ab,bc,ac,count-1);
     }
+}
+
+//twister
+function twist(points,centerX,centerY) {
+    return points;
 }
 
 //constant updater
