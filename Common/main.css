@@ -45,12 +45,10 @@ a:active {
     }
 
 article {
-    margin: 1em 1em 1em 1em;
+    margin: 1em 1em 1em 2em;
     border: 2px outset rgb(240,240,140);
     padding: 1em;
-    
     background: rgba(220,220,220,1);
-    
     border-radius: 180px/60px;
     box-shadow: 1px 2px 6px black;
     display: inline-block; /* make width shrink-wrapped.*/
@@ -64,14 +62,6 @@ article h3 {
     margin-left:3em;
     }
     
-dd:before{
-    content: attr(class) ".";
-    font-weight:100;
-    }
-/* dd */
-dt {
-    margin-left: 4em;
-    }
 h2, .light {
     font-weight: 100;
     }
