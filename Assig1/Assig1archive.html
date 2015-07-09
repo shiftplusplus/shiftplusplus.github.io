@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Assignment 1 | Interactive Computer Graphics with WebGL</title>
+        <link rel="stylesheet" rev="stylesheet" href="../Common/main.css" type="text/css" />
+        <!-- Scripts -->
+        <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+        <script type="text/javascript" src="../Common/initShaders.js"></script>
+        <script type="text/javascript" src="../Common/MV.js"></script>
+        <script type="text/javascript" src="Assig1archive.js"></script>
+        <!-- GL Shaders; basic -->
+        <script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+
+void main() {
+    gl_Position = vPosition;
+}
+        </script>
+        <script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main() {
+    gl_FragColor = vec4( 1.0, 1.0, 0.0, 1.0 );
+}
+        </script>
+        
+        
+    </head>
+    <body>
+        <header>
+            <h1>Assignment 1 : Tessellation and Twist</h1>
+            <h2><a href="https://class.coursera.org/webgl-001/">Interactive Computer Graphics with WebGL</a></h2>
+        </header>
+        <article>
+            <canvas id="gl-canvas" width="512" height="512"> Sorry, your browser doesn't support HTML5 canvas.</canvas>
+        </article>
+        <article id="controls">
+            <p>Controls go here</p>
+            <p>Size</p>
+            <p>Object sides</p>
+            <p>Color</p>
+            <p>Number of tessellations</p>
+            <p>Degree of twist</p>
+            
+        </article>
+    </body>
+</html>
