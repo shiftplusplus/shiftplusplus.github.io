@@ -1,6 +1,10 @@
+//personal library function
+function deg2Rad(deg){
+    return (Math.PI/180*deg);
+}
 //vars
 var points = [];
-var numTimesToSubdivide = 5;
+var numTimesToSubdivide = 8;
     /* initial triangle */
 var vertices = [
     vec2(-1,-1),
@@ -23,12 +27,16 @@ window.onload = function init(){
     gl.useProgram(program);
     var bufferID = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
+    
+        console.log(""+points[0]);
+    points = twist(points,10,0,0,-.75);
+       console.log(""+points[0]);    
+    
     gl.bufferData(gl.ARRAY_BUFFER, flatten(points),gl.STATIC_DRAW);
     var vPosition = gl.getAttribLocation( program,"vPosition");
     gl.vertexAttribPointer( vPosition,2,gl.FLOAT,false,0,0);
     gl.enableVertexAttribArray(vPosition);
-    points = twist(points,0,0);
-    
+
     render()
 };
 
@@ -57,8 +65,26 @@ function tessellate(a,b,c,count){
 }
 
 //twister
-function twist(points,centerX,centerY) {
-    return points;
+function twist(pts,twistAmount,centerX,centerY,sizeAdjust) {
+    p=[];
+    console.log(pts)
+    for(var i=0;i<pts.length; i++){
+        var vertex = JSON.parse(JSON.stringify(pts[i]));
+//     console.log(vertex);
+        x=vertex[0];
+        y=vertex[1];
+        var d = Math.sqrt((x-centerX)*(x-centerX)+(y-centerY)*(y-centerY)); //1^2 = 3 for some reason
+//     console.log(d);
+        newX = x*Math.cos(deg2Rad(d*twistAmount))-y*Math.sin(deg2Rad(d*twistAmount));
+        newY = x*Math.sin(deg2Rad(d*twistAmount))+y*Math.cos(deg2Rad(d*twistAmount));
+//     console.log(newX+","+newY);
+
+        vertex[0]=newX*sizeAdjust;
+        vertex[1]=newY*sizeAdjust;
+
+        p.push(vertex);
+    }
+    return p
 }
 
 //constant updater
