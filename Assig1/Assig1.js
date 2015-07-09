@@ -4,8 +4,9 @@ function deg2Rad(deg){
 }
 //vars
 var points = [];
-var numTimesToSubdivide = 8;
+var numTimesToSubdivide = 4;
     /* initial triangle */
+    //Change to be regular n-gon (n=SIDES) centered at 0,0 of radius SIZE
 var vertices = [
     vec2(-1,-1),
     vec2(0,1),
@@ -15,6 +16,8 @@ tessellate (vertices[0],vertices[1],vertices[2], numTimesToSubdivide);
 
 
 //init
+
+//Move most of this to a "update" function, and attach that to all controls
 window.onload = function init(){
     var canvas = document.getElementById("gl-canvas");
     gl = WebGLUtils.setupWebGL(canvas);
@@ -57,10 +60,11 @@ function tessellate(a,b,c,count){
     var bc = mix(b,c,0.5);
    // count--;
   //new triangles
-    tessellate(a,ab,ac,count-1);
     tessellate(c,ac,bc,count-1);
-    tessellate(b,bc,ab,count-1);
+    tessellate(a,ab,ac,count-1);
     tessellate(ab,bc,ac,count-1);
+    tessellate(b,bc,ab,count-1);
+    
     }
 }
 
@@ -92,5 +96,5 @@ function twist(pts,twistAmount,centerX,centerY,sizeAdjust) {
 //render
 function render(){
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLES,0,points.length);
+    gl.drawArrays(gl.LINE_LOOP,0,points.length);
 }
