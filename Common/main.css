@@ -65,6 +65,9 @@ article h3 {
 h2, .light {
     font-weight: 100;
     }
+label {
+    font-weight:500;
+    }
 
 .vertical {
     transform: rotate(90deg);
