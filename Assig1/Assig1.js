@@ -4,21 +4,52 @@ function deg2Rad(deg){
 }
 //vars
 var points = [];
-var numTimesToSubdivide = 4;
+
+var size = 1;
+var sides = 3;
+var tessellations = 4;
     /* initial triangle */
-    //Change to be regular n-gon (n=SIDES) centered at 0,0 of radius SIZE
+var twist = 10;
+var fractal = false;
+var centerX = 0;
+var centerY = 0;
+    //Change to be regular n-gon (n=SIDES) centered at 0,0 of radius SIZE; do this in update()
 var vertices = [
     vec2(-1,-1),
     vec2(0,1),
     vec2(1,-1)
     ];
-tessellate (vertices[0],vertices[1],vertices[2], numTimesToSubdivide);
+tessellate (vertices[0],vertices[1],vertices[2], tessellations);
 
 
 //init
+window.onload = function init() {
+    //Bind all controls
+    $("input").change(update);
+
+    start();
+}
+
+function update(e){
+    if(!e) var e = window.event;
+    //e = event
+    //this = HMTL element triggering it.
+
+    //Set all variables
+    size = $("#size").val();
+    sides = $("#sides").val();
+    tessellations = $("#tessellations").val();
+    twist = $("#twist").val();
+    $("#fractal").is(":checked"); //checkboxes are weird
+    centerX = $("#centerX").val();
+    centerY = $("#centerY").val();
+
+    $('input').each(function() { console.log( this.id ); });
+}
+
 
 //Move most of this to a "update" function, and attach that to all controls
-window.onload = function init(){
+function start(){
     var canvas = document.getElementById("gl-canvas");
     gl = WebGLUtils.setupWebGL(canvas);
     if(!gl) {alert("WebGL Isnt Available!");}
@@ -32,7 +63,7 @@ window.onload = function init(){
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
     
         console.log(""+points[0]);
-    points = twist(points,10,0,0,-.75);
+    points = twister(points,10,0,0,-.75);
        console.log(""+points[0]);    
     
     gl.bufferData(gl.ARRAY_BUFFER, flatten(points),gl.STATIC_DRAW);
@@ -68,8 +99,8 @@ function tessellate(a,b,c,count){
     }
 }
 
-//twister
-function twist(pts,twistAmount,centerX,centerY,sizeAdjust) {
+//twisterer
+function twister(pts,twisterAmount,centerX,centerY,sizeAdjust) {
     p=[];
     console.log(pts)
     for(var i=0;i<pts.length; i++){
@@ -79,8 +110,8 @@ function twist(pts,twistAmount,centerX,centerY,sizeAdjust) {
         y=vertex[1];
         var d = Math.sqrt((x-centerX)*(x-centerX)+(y-centerY)*(y-centerY)); //1^2 = 3 for some reason
 //     console.log(d);
-        newX = x*Math.cos(deg2Rad(d*twistAmount))-y*Math.sin(deg2Rad(d*twistAmount));
-        newY = x*Math.sin(deg2Rad(d*twistAmount))+y*Math.cos(deg2Rad(d*twistAmount));
+        newX = x*Math.cos(deg2Rad(d*twisterAmount))-y*Math.sin(deg2Rad(d*twisterAmount));
+        newY = x*Math.sin(deg2Rad(d*twisterAmount))+y*Math.cos(deg2Rad(d*twisterAmount));
 //     console.log(newX+","+newY);
 
         vertex[0]=newX*sizeAdjust;
