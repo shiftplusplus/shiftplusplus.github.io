@@ -48,12 +48,12 @@ void main() {
             </p>
             <p><label for="sides">Polygon sides</label><input type="range" min="3" max="12" step="1" value="3" id="sides" class="controls" /></p>
             <p>Color</p>
-            <p><label for="tessellations">Resolution</label><input type="range" min="0" max="12" step="1" value="6" id="tessellations" class="controls" /></p>
+            <p><label for="tessellations">Resolution</label><input type="range" min="0" max="8" step="1" value="4" id="tessellations" class="controls" list="tessellwarn"/><datalist id="tessellwarn"><option label="Default">4</option> <option label="Slow!">6</option</datalist></p>
             <p><label for="twist">Twist amount</label><input type="range" min="0" max="900" step="1" value="10" id="twist" class="controls" /></p>
             <p><label for="fractal">Fractalize</label><input type="checkbox" value="false" id="fractal" class="controls" /></p>
             <p><label>Center of twist</label><br /><br /><br />
-            <input type="range" min="0" max="512" step="1" value="256" id="centerX" class="controls" />
-            <input type="range" min="0" max="512" step="1" value="256" id="centerY" class="controls vertical" />
+            <input type="range" min="-1" max="1" step="0.01" value="0" id="centerX" class="controls" />
+            <input type="range" min="-1" max="1" step="0.01" value="0" id="centerY" class="controls vertical" />
             <br />(Or click on the canvas)</p>
             
         </article>

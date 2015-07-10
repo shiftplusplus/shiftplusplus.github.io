@@ -21,13 +21,24 @@ var vertices = [
     ];
 tessellate (vertices[0],vertices[1],vertices[2], tessellations);
 
+var program;
 
 //init
 window.onload = function init() {
     //Bind all controls
     $("input").change(update);
-
-    start();
+    
+    var canvas = document.getElementById("gl-canvas");
+    gl = WebGLUtils.setupWebGL(canvas);
+    if(!gl) {alert("WebGL Isnt Available!");}
+    //Configure WebGL
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0.0,0.0,0.0,1.0);
+    
+    program = initShaders( gl,"vertex-shader","fragment-shader");
+    gl.useProgram(program);
+    
+    update();
 }
 
 function update(e){
@@ -40,39 +51,31 @@ function update(e){
     sides = $("#sides").val();
     tessellations = $("#tessellations").val();
     twist = $("#twist").val();
-    $("#fractal").is(":checked"); //checkboxes are weird
-    centerX = $("#centerX").val();
+    fractal = $("#fractal").is(":checked"); //checkboxes are weird
+    centerX = $("#centerX").val(); 
     centerY = $("#centerY").val();
-
-    $('input').each(function() { console.log( this.id ); });
-}
-
-
-//Move most of this to a "update" function, and attach that to all controls
-function start(){
-    var canvas = document.getElementById("gl-canvas");
-    gl = WebGLUtils.setupWebGL(canvas);
-    if(!gl) {alert("WebGL Isnt Available!");}
-    //Configure WebGL
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.0,0.0,0.0,1.0);
+    points = null;
+    points = [];
+    tessellate (vertices[0],vertices[1],vertices[2], tessellations)
     
-    var program = initShaders( gl,"vertex-shader","fragment-shader");
-    gl.useProgram(program);
+  //This was from the original init.    
+//         console.log(""+points[0]);
+    points = JSON.parse(JSON.stringify(twister(points,twist,0,0,-.75)));
+//        console.log(""+points[0]);    
+    
     var bufferID = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
-    
-        console.log(""+points[0]);
-    points = twister(points,10,0,0,-.75);
-       console.log(""+points[0]);    
-    
     gl.bufferData(gl.ARRAY_BUFFER, flatten(points),gl.STATIC_DRAW);
     var vPosition = gl.getAttribLocation( program,"vPosition");
     gl.vertexAttribPointer( vPosition,2,gl.FLOAT,false,0,0);
     gl.enableVertexAttribArray(vPosition);
 
     render()
-};
+}
+
+
+//Move most of this to a "update" function, and attach that to all controls
+
 
 //Helper: display 1 triangle
 function triangle(a,b,c){
@@ -93,7 +96,9 @@ function tessellate(a,b,c,count){
   //new triangles
     tessellate(c,ac,bc,count-1);
     tessellate(a,ab,ac,count-1);
+    if(!fractal){
     tessellate(ab,bc,ac,count-1);
+    }
     tessellate(b,bc,ab,count-1);
     
     }
@@ -102,7 +107,6 @@ function tessellate(a,b,c,count){
 //twisterer
 function twister(pts,twisterAmount,centerX,centerY,sizeAdjust) {
     p=[];
-    console.log(pts)
     for(var i=0;i<pts.length; i++){
         var vertex = JSON.parse(JSON.stringify(pts[i]));
 //     console.log(vertex);
@@ -127,5 +131,6 @@ function twister(pts,twisterAmount,centerX,centerY,sizeAdjust) {
 //render
 function render(){
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.LINE_LOOP,0,points.length);
+    gl.drawArrays(gl.TRIANGLES,0,points.length);
+//     gl.drawArrays(gl.LINE_LOOP,0,points.length);
 }
