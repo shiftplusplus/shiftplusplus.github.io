@@ -60,7 +60,7 @@ function update(e){
     
   //This was from the original init.    
 //         console.log(""+points[0]);
-    points = JSON.parse(JSON.stringify(twister(points,twist,0,0,-.75)));
+    points = JSON.parse(JSON.stringify(twister(points,twist,centerX,centerY,size)));
 //        console.log(""+points[0]);    
     
     var bufferID = gl.createBuffer();
