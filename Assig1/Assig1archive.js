@@ -6,7 +6,7 @@ function deg2Rad(deg){
 var points = [];
 
 var size = 1;
-var sides = 3;
+// var sides = 3;
 var tessellations = 4;
     /* initial triangle */
 var twist = 10;
@@ -48,7 +48,7 @@ function update(e){
 
     //Set all variables
     size = $("#size").val();
-    sides = $("#sides").val();
+//     sides = $("#sides").val();
     tessellations = $("#tessellations").val();
     twist = $("#twist").val();
     fractal = $("#fractal").is(":checked"); //checkboxes are weird
