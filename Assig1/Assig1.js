@@ -102,7 +102,7 @@ function update(e){
     points = [];
     tessellate(vertices[0],vertices[1],vertices[2], tessellations)
     
-    //TODO: Implement click to set center of twist; adjustable polygon; optional color, automatic visualizer.
+    //TODO: adjustable polygon; automatic visualizer.
     
     points = JSON.parse(JSON.stringify(twister(points,twist,centerX,centerY,size)));
 //        console.log(""+points[0]);    
