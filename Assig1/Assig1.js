@@ -30,7 +30,7 @@ window.onload = function init() {
     
     var canvas = document.getElementById("gl-canvas");
     //Or use JQuery?
-    //canvas.onClick
+    $("#gl-canvas").click(clickUpdate);
     
     gl = WebGLUtils.setupWebGL(canvas);
     if(!gl) {alert("WebGL Isnt Available!");}
@@ -42,6 +42,23 @@ window.onload = function init() {
     gl.useProgram(program);
     
     update();
+}
+
+function clickUpdate(e){
+    if(!e) var e = window.event;
+    //e = event
+    //this = HMTL element triggering it.
+    
+    var posX = e.pageX - $(this).position().left;
+    var posY = e.pageY - $(this).position().top;
+    var width = $(this).width();
+    var height = $(this).height();
+    var x = (posX)/width -1;
+    var y = (posY)/width -1;
+    $("#centerX").val(x);
+    $("#centerY").val(y);
+    update();
+    
 }
 
 function update(e){
@@ -59,7 +76,7 @@ function update(e){
     centerY = $("#centerY").val();
     points = null;
     points = [];
-    tessellate (vertices[0],vertices[1],vertices[2], tessellations)
+    tessellate(vertices[0],vertices[1],vertices[2], tessellations)
     
     //TODO: Implement click to set center of twist; adjustable polygon; optional color, automatic visualizer.
     
