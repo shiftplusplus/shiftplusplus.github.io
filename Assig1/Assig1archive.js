@@ -1,3 +1,5 @@
+    //TODO:automatic visualizer.
+
 //personal library function
 function deg2Rad(deg){
     return (Math.PI/180*deg);
@@ -6,29 +8,34 @@ function deg2Rad(deg){
 var points = [];
 
 var size = 1;
-// var sides = 3;
+var sides = 3;
 var tessellations = 4;
     /* initial triangle */
 var twist = 10;
 var fractal = false;
 var centerX = 0;
 var centerY = 0;
-    //Change to be regular n-gon (n=SIDES) centered at 0,0 of radius SIZE; do this in update()
-var vertices = [
-    vec2(-1,-1),
-    vec2(0,1),
-    vec2(1,-1)
-    ];
-tessellate (vertices[0],vertices[1],vertices[2], tessellations);
+
+var colorR = 1.0;
+var colorG = 0.0;
+var colorB = 1.0;
+var colorA = 1.0;
+
+var amAnimating = false;
+var animateTimer;
 
 var program;
 
 //init
 window.onload = function init() {
     //Bind all controls
-    $("input").change(update);
+    $(".controls").change(update);
+    $(".colors input").off("change").change(colorUpdate);
+    $("#animate").click(toggleAnimation);
     
     var canvas = document.getElementById("gl-canvas");
+    $("#gl-canvas").click(clickUpdate);
+    
     gl = WebGLUtils.setupWebGL(canvas);
     if(!gl) {alert("WebGL Isnt Available!");}
     //Configure WebGL
@@ -37,8 +44,62 @@ window.onload = function init() {
     
     program = initShaders( gl,"vertex-shader","fragment-shader");
     gl.useProgram(program);
+    colorUpdate();
+}
+
+function colorUpdate(){
+    colorR = $("#colorR").val();
+    colorG = $("#colorG").val();
+    colorB = $("#colorB").val();
+    colorA = $("#colorA").val();
+    
+    var glR = gl.getUniformLocation(program,"r");
+    gl.uniform1f(glR, colorR);
+    var glG = gl.getUniformLocation(program,"g");
+    gl.uniform1f(glG, colorG);
+    var glB = gl.getUniformLocation(program,"b");
+    gl.uniform1f(glB, colorB);
+    var glA = gl.getUniformLocation(program,"a");
+    gl.uniform1f(glA, colorA);
     
     update();
+
+}
+
+function toggleAnimation(e){
+    if(!amAnimating){
+    //start
+    animateTimer = setInterval(animate,1000/30);
+//    $("#gl-canvas").mousemove(clickUpdate); //Dont let this one call update().
+    
+    }else {
+    //stop
+    clearInterval(animateTimer);
+    $("#gl-canvas").off('mousemove');
+
+    }
+}
+
+function animate(){
+    
+    update();
+}
+
+function clickUpdate(e){
+    if(!e) var e = window.event;
+    //e = event
+    //this = HMTL element triggering it.
+
+    var posX = e.pageX - $(this).position().left;
+    var posY = e.pageY - $(this).position().top;
+    var width = $(this).width();
+    var height = $(this).height();
+    var x = ((posX)/width)*2 -1;
+    var y = ((posY)/width)*2 -1;
+    $("#centerX").val(x);
+    $("#centerY").val(y);
+    update();
+    
 }
 
 function update(e){
@@ -48,7 +109,7 @@ function update(e){
 
     //Set all variables
     size = $("#size").val();
-//     sides = $("#sides").val();
+    sides = $("#sides").val();
     tessellations = $("#tessellations").val();
     twist = $("#twist").val();
     fractal = $("#fractal").is(":checked"); //checkboxes are weird
@@ -56,25 +117,29 @@ function update(e){
     centerY = $("#centerY").val();
     points = null;
     points = [];
-    tessellate (vertices[0],vertices[1],vertices[2], tessellations)
-    
-    //TODO: Implement click to set center of twist; adjustable polygon; optional color, automatic visualizer.
-    
+
+    angleOffset = deg2Rad(360/sides);
+    vertices= new Array();
+    for(i=0;i<sides;i++){
+        vertices[i] = vec2(1*Math.cos(i*angleOffset),1*Math.sin(i*angleOffset));
+    }
+    for(i=0; i<vertices.length; i++){
+        var endpointIndex = i+1;
+        if(endpointIndex== vertices.length){endpointIndex=0;}
+        tessellate (vec2(0,0),vertices[i],vertices[endpointIndex], tessellations);
+    }    
     points = JSON.parse(JSON.stringify(twister(points,twist,centerX,centerY,size)));
-//        console.log(""+points[0]);    
     
     var bufferID = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(points),gl.STATIC_DRAW);
     var vPosition = gl.getAttribLocation( program,"vPosition");
+    
     gl.vertexAttribPointer( vPosition,2,gl.FLOAT,false,0,0);
     gl.enableVertexAttribArray(vPosition);
 
     render()
 }
-
-
-//Move most of this to a "update" function, and attach that to all controls
 
 
 //Helper: display 1 triangle
@@ -109,14 +174,11 @@ function twister(pts,twisterAmount,centerX,centerY,sizeAdjust) {
     p=[];
     for(var i=0;i<pts.length; i++){
         var vertex = JSON.parse(JSON.stringify(pts[i]));
-//     console.log(vertex);
         x=vertex[0];
         y=vertex[1];
         var d = Math.sqrt((x-centerX)*(x-centerX)+(y-centerY)*(y-centerY)); //1^2 = 3 for some reason
-//     console.log(d);
         newX = x*Math.cos(deg2Rad(d*twisterAmount))-y*Math.sin(deg2Rad(d*twisterAmount));
         newY = x*Math.sin(deg2Rad(d*twisterAmount))+y*Math.cos(deg2Rad(d*twisterAmount));
-//     console.log(newX+","+newY);
 
         vertex[0]=newX*sizeAdjust;
         vertex[1]=newY*sizeAdjust;
