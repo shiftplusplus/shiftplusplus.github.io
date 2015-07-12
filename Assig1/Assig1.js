@@ -1,3 +1,5 @@
+    //TODO:automatic visualizer.
+
 //personal library function
 function deg2Rad(deg){
     return (Math.PI/180*deg);
@@ -13,13 +15,6 @@ var twist = 10;
 var fractal = false;
 var centerX = 0;
 var centerY = 0;
-    //Change to be regular n-gon (n=SIDES) centered at 0,0 of radius SIZE; do this in update()
-var vertices = [
-    vec2(-1,-1),
-    vec2(0,1),
-    vec2(1,-1)
-    ];
-tessellate (vertices[0],vertices[1],vertices[2], tessellations);
 
 var colorR = 1.0;
 var colorG = 0.0;
@@ -35,7 +30,6 @@ window.onload = function init() {
     $(".colors input").off("change").change(colorUpdate);
     
     var canvas = document.getElementById("gl-canvas");
-    //Or use JQuery?
     $("#gl-canvas").click(clickUpdate);
     
     gl = WebGLUtils.setupWebGL(canvas);
@@ -100,12 +94,19 @@ function update(e){
     centerY = $("#centerY").val();
     points = null;
     points = [];
-    tessellate(vertices[0],vertices[1],vertices[2], tessellations)
-    
-    //TODO: adjustable polygon; automatic visualizer.
-    
+
+    angleOffset = deg2Rad(360/sides);
+    vertices= new Array();
+    for(i=0;i<sides;i++){
+        vertices[i] = vec2(1*Math.cos(i*angleOffset),1*Math.sin(i*angleOffset));
+    }
+    console.log(vertices);
+    for(i=0; i<vertices.length; i++){
+        var endpointIndex = i+1;
+        if(endpointIndex== vertices.length){endpointIndex=0;}
+        tessellate (vec2(0,0),vertices[i],vertices[endpointIndex], tessellations);
+    }    
     points = JSON.parse(JSON.stringify(twister(points,twist,centerX,centerY,size)));
-//        console.log(""+points[0]);    
     
     var bufferID = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
@@ -117,9 +118,6 @@ function update(e){
 
     render()
 }
-
-
-//Move most of this to a "update" function, and attach that to all controls
 
 
 //Helper: display 1 triangle
