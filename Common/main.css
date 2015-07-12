@@ -71,9 +71,9 @@ label {
 
 .vertical {
     transform: rotate(90deg);
-    margin-left: 7em;
+    margin-left: -5.5em;
     position: relative;
-    top: -7em;
+    top: -5em;
 }
 .colors{
     margin-top: 3.2em;
