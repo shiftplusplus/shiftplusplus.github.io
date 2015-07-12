@@ -21,12 +21,18 @@ var vertices = [
     ];
 tessellate (vertices[0],vertices[1],vertices[2], tessellations);
 
+var colorR = 1.0;
+var colorG = 0.0;
+var colorB = 1.0;
+var colorA = 1.0;
+
 var program;
 
 //init
 window.onload = function init() {
     //Bind all controls
     $("input").change(update);
+    $(".colors input").off("change").change(colorUpdate);
     
     var canvas = document.getElementById("gl-canvas");
     //Or use JQuery?
@@ -40,21 +46,39 @@ window.onload = function init() {
     
     program = initShaders( gl,"vertex-shader","fragment-shader");
     gl.useProgram(program);
+    colorUpdate();
+}
+
+function colorUpdate(){
+    colorR = $("#colorR").val();
+    colorG = $("#colorG").val();
+    colorB = $("#colorB").val();
+    colorA = $("#colorA").val();
+    
+    var glR = gl.getUniformLocation(program,"r");
+    gl.uniform1f(glR, colorR);
+    var glG = gl.getUniformLocation(program,"g");
+    gl.uniform1f(glG, colorG);
+    var glB = gl.getUniformLocation(program,"b");
+    gl.uniform1f(glB, colorB);
+    var glA = gl.getUniformLocation(program,"a");
+    gl.uniform1f(glA, colorA);
     
     update();
+
 }
 
 function clickUpdate(e){
     if(!e) var e = window.event;
     //e = event
     //this = HMTL element triggering it.
-    
+
     var posX = e.pageX - $(this).position().left;
     var posY = e.pageY - $(this).position().top;
     var width = $(this).width();
     var height = $(this).height();
-    var x = (posX)/width -1;
-    var y = (posY)/width -1;
+    var x = ((posX)/width)*2 -1;
+    var y = ((posY)/width)*2 -1;
     $("#centerX").val(x);
     $("#centerY").val(y);
     update();
@@ -87,6 +111,7 @@ function update(e){
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(points),gl.STATIC_DRAW);
     var vPosition = gl.getAttribLocation( program,"vPosition");
+    
     gl.vertexAttribPointer( vPosition,2,gl.FLOAT,false,0,0);
     gl.enableVertexAttribArray(vPosition);
 

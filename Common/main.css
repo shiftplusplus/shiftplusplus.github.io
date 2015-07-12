@@ -55,7 +55,7 @@ article {
     }
 article#controls{
     position:fixed;
-    top:200px;
+    top:100px;
     }
 article h3 {
     color: rgb(80,80,80);
@@ -75,4 +75,28 @@ label {
     position: relative;
     top: -7em;
 }
-    
+.colors{
+    margin-top: 3.2em;
+    margin-bottom: 3em;
+    position:relative;
+}
+
+.color{
+    transform: rotate(-90deg);
+}
+#colorR {
+    position: absolute;
+    left: 0px
+    }
+#colorG {
+    position: absolute;
+    left: 20px
+    }
+#colorB {
+    position: absolute;
+    left: 40px
+    }
+#colorA {
+    position: absolute;
+    left: 60px
+    }

@@ -19,9 +19,14 @@ void main() {
         </script>
         <script id="fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
+uniform float r;
+uniform float g;
+uniform float b;
+uniform float a;
+
 
 void main() {
-    gl_FragColor = vec4( 1.0, 1.0, 0.0, 1.0 );
+    gl_FragColor = vec4( r, g, b, a );
 }
         </script>
         
@@ -38,7 +43,7 @@ void main() {
             <h3>Controls</h3>
             <p>
                 <label for="size" >Size: </label>
-                <input type="range" min="0.25" max="2" step="0.05" value="1" id="size" class="controls" list="sizes">
+                <input type="range" min="0.25" max="2" step="0.05" value="0.85" id="size" class="controls" list="sizes">
                     <datalist id="sizes">
                         <option label="0.75">0.75</option>
                         <option label="1">1</option>
@@ -47,9 +52,15 @@ void main() {
                 </input>
             </p>
             <p><label for="sides">Polygon sides</label><input type="range" min="3" max="12" step="1" value="3" id="sides" class="controls" /></p>
-            <p>Color</p>
+            <p class="colors">
+            <label>Color</label>
+                <input type="range" id="colorR" min="0" max="1" step="0.01" value="1" class="controls color"/>
+                <input type="range" id="colorG" min="0" max="1" step="0.01" value="0" class="controls color"/>
+                <input type="range" id="colorB" min="0" max="1" step="0.01" value="1" class="controls color"/>
+                <input type="range" id="colorA" min="0" max="1" step="0.01" value= 1 class="controls color"/>
+            </p>
             <p><label for="tessellations">Resolution</label><input type="range" min="0" max="8" step="1" value="4" id="tessellations" class="controls" list="tessellwarn"/><datalist id="tessellwarn"><option label="Default">4</option> <option label="Slow!">6</option</datalist></p>
-            <p><label for="twist">Twist amount</label><input type="range" min="0" max="900" step="1" value="10" id="twist" class="controls" /></p>
+            <p><label for="twist">Twist amount</label><input type="range" min="0" max="900" step="1" value="10" id="twist" class="controls" style="width:200px;"/></p>
             <p><label for="fractal">Fractalize</label><input type="checkbox" value="false" id="fractal" class="controls" /></p>
             <p><label>Center of twist</label><br /><br /><br />
             <input type="range" min="-1" max="1" step="0.01" value="0" id="centerX" class="controls" />
