@@ -29,6 +29,9 @@ window.onload = function init() {
     $("input").change(update);
     
     var canvas = document.getElementById("gl-canvas");
+    //Or use JQuery?
+    //canvas.onClick
+    
     gl = WebGLUtils.setupWebGL(canvas);
     if(!gl) {alert("WebGL Isnt Available!");}
     //Configure WebGL
