@@ -21,13 +21,21 @@ var colorG = 0.0;
 var colorB = 1.0;
 var colorA = 1.0;
 
+var amAnimating = false;
+var animateTimer;
+var animateDirection = new Object;
+animateDirection.size = 1;
+animateDirection.twist = 1;
+var animateColor;
+
 var program;
 
 //init
 window.onload = function init() {
     //Bind all controls
-    $("input").change(update);
+    $(".controls").change(update);
     $(".colors input").off("change").change(colorUpdate);
+    $("#animate").click(toggleAnimation);
     
     var canvas = document.getElementById("gl-canvas");
     $("#gl-canvas").click(clickUpdate);
@@ -62,6 +70,44 @@ function colorUpdate(){
 
 }
 
+function toggleAnimation(e){
+    if(!amAnimating){
+    console.log("start");
+    amAnimating=true;
+    animateTimer = setInterval(animate,1000/30);
+   $("#gl-canvas").mousemove(clickUpdate); //Dont let this one call update().
+    size= 0.05;
+    $("#size").val(size);
+    twist = -1080;
+    $("#twist").val(twist);
+    
+
+    }else {
+    console.log("stop");
+    amAnimating=false;
+    clearInterval(animateTimer);
+    $("#gl-canvas").off('mousemove');
+
+    }
+}
+
+function animate(){
+    if(size >= $("#size").attr("max")){
+            animateDirection.size = -1;
+        } else if(size <= $("#size").attr("min")) {
+            animateDirection.size=1;
+        }
+    $("#size").val(Number(size)+animateDirection.size*0.01);
+    if(twist >= Number($("#twist").attr("max"))){
+            animateDirection.twist = -1;
+        } else if (twist <= Number($("#twist").attr("min"))){
+            animateDirection.twist = 1;
+        }
+    $("#twist").val(Number(twist)+animateDirection.twist*5);
+    
+    update();
+}
+
 function clickUpdate(e){
     if(!e) var e = window.event;
     //e = event
@@ -75,8 +121,7 @@ function clickUpdate(e){
     var y = ((posY)/width)*2 -1;
     $("#centerX").val(x);
     $("#centerY").val(y);
-    update();
-    
+    if(!amAnimating){update();}
 }
 
 function update(e){
@@ -100,7 +145,6 @@ function update(e){
     for(i=0;i<sides;i++){
         vertices[i] = vec2(1*Math.cos(i*angleOffset),1*Math.sin(i*angleOffset));
     }
-    console.log(vertices);
     for(i=0; i<vertices.length; i++){
         var endpointIndex = i+1;
         if(endpointIndex== vertices.length){endpointIndex=0;}
@@ -152,14 +196,11 @@ function twister(pts,twisterAmount,centerX,centerY,sizeAdjust) {
     p=[];
     for(var i=0;i<pts.length; i++){
         var vertex = JSON.parse(JSON.stringify(pts[i]));
-//     console.log(vertex);
         x=vertex[0];
         y=vertex[1];
         var d = Math.sqrt((x-centerX)*(x-centerX)+(y-centerY)*(y-centerY)); //1^2 = 3 for some reason
-//     console.log(d);
         newX = x*Math.cos(deg2Rad(d*twisterAmount))-y*Math.sin(deg2Rad(d*twisterAmount));
         newY = x*Math.sin(deg2Rad(d*twisterAmount))+y*Math.cos(deg2Rad(d*twisterAmount));
-//     console.log(newX+","+newY);
 
         vertex[0]=newX*sizeAdjust;
         vertex[1]=newY*sizeAdjust;
