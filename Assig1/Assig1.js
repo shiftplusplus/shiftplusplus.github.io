@@ -75,7 +75,7 @@ function toggleAnimation(e){
     console.log("start");
     amAnimating=true;
     animateTimer = setInterval(animate,1000/30);
-   $("#gl-canvas").mousemove(clickUpdate); //Dont let this one call update().
+   $("#gl-canvas").mousemove(clickUpdate); //When animating, this does not call update(), preventing double updating.
     size= 0.05;
     $("#size").val(size);
     twist = -1080;
@@ -92,6 +92,7 @@ function toggleAnimation(e){
 }
 
 function animate(){
+    //TODO: DRY up this into a bounce() function
     if(size >= $("#size").attr("max")){
             animateDirection.size = -1;
         } else if(size <= $("#size").attr("min")) {

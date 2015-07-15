@@ -23,6 +23,10 @@ var colorA = 1.0;
 
 var amAnimating = false;
 var animateTimer;
+var animateDirection = new Object;
+animateDirection.size = 1;
+animateDirection.twist = 1;
+var animateColor;
 
 var program;
 
@@ -68,12 +72,19 @@ function colorUpdate(){
 
 function toggleAnimation(e){
     if(!amAnimating){
-    //start
+    console.log("start");
+    amAnimating=true;
     animateTimer = setInterval(animate,1000/30);
-//    $("#gl-canvas").mousemove(clickUpdate); //Dont let this one call update().
+   $("#gl-canvas").mousemove(clickUpdate); //When animating, this does not call update(), preventing double updating.
+    size= 0.05;
+    $("#size").val(size);
+    twist = -1080;
+    $("#twist").val(twist);
     
+
     }else {
-    //stop
+    console.log("stop");
+    amAnimating=false;
     clearInterval(animateTimer);
     $("#gl-canvas").off('mousemove');
 
@@ -81,6 +92,19 @@ function toggleAnimation(e){
 }
 
 function animate(){
+    //TODO: DRY up this into a bounce() function
+    if(size >= $("#size").attr("max")){
+            animateDirection.size = -1;
+        } else if(size <= $("#size").attr("min")) {
+            animateDirection.size=1;
+        }
+    $("#size").val(Number(size)+animateDirection.size*0.01);
+    if(twist >= Number($("#twist").attr("max"))){
+            animateDirection.twist = -1;
+        } else if (twist <= Number($("#twist").attr("min"))){
+            animateDirection.twist = 1;
+        }
+    $("#twist").val(Number(twist)+animateDirection.twist*5);
     
     update();
 }
@@ -98,8 +122,7 @@ function clickUpdate(e){
     var y = ((posY)/width)*2 -1;
     $("#centerX").val(x);
     $("#centerY").val(y);
-    update();
-    
+    if(!amAnimating){update();}
 }
 
 function update(e){
