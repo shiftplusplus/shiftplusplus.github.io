@@ -91,33 +91,59 @@ function toggleAnimation(e){
 }
 
 function changeColor(amount){
-    console.log(animateColor);
+//     console.log(animateColor);
     switch(animateColor){
         case "B": 
              colorB = colorB + amount;
-             if(colorB >1.0){
-                animateColor = "G";
-                colorB=0.0;
+             if(colorB >=1.0 || colorB <=0.0){
+                animateColor = "R";
+//                 colorB=0.0;
              }
              $("#colorB").val(colorB);
             break;
         case "G":
             colorG = colorG + amount;
-             if(colorG >1.0){
-                animateColor = "R";
-                colorG=0.0;
+             if(colorG >=1.0 || colorG <=0.0){
+                animateColor = "B";
+//                 colorG=0.0;
              }
              $("#colorG").val(colorG);
             break;
         case "R":
             colorR = colorR + amount;
-             if(colorR >1.0){
-                animateColor = "B";
-                colorR=0.0;
+             if(colorR >1.0 || colorR <= 0.0){
+                animateColor = "G";
+//                 colorR=0.0;
              }
              $("#colorR").val(colorR);
             break;
         default: console.log("animateColor is invalid value.");break;
+    }
+    if(colorR+colorG+colorB ==2){
+        switch(animateColor){
+        case "B": 
+             $("#colorR").val(0.0);
+            break;
+        case "G":
+             $("#colorG").val(0.0);
+            break;
+        case "R":
+             $("#colorB").val(0.0);
+            break;
+        default: console.log("animateColor is invalid value.");break;
+    }
+    }
+    
+    if ((colorR+colorG+colorB >= 3)||(colorR+colorG+colorB<=0)){ //Greater and less than jsut to catch anything wacky.
+        if(amount <0){
+             $("#colorR").val(1.0);
+             $("#colorG").val(1.0);
+             $("#colorB").val(1.0);
+        }else{
+             $("#colorR").val(0.0);
+             $("#colorG").val(0.0);
+             $("#colorB").val(0.0);
+        }
     }
     colorR = Number($("#colorR").val());
     colorG = Number($("#colorG").val());
@@ -149,7 +175,7 @@ function animate(){
     $("#twist").val(Number(twist)+animateDirection.twist*5);
     
     changeColors = $("#color").is(":checked");
-    console.log(changeColors);
+//     console.log(changeColors);
     if(changeColors){ changeColor(0.01);}
     
     update();
