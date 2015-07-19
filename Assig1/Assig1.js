@@ -29,6 +29,7 @@ animateDirection.twist = 1;
 var animateColor = "B";
 var changeColors = false;
 var program;
+var wireframe = false;
 
 //init
 window.onload = function init() {
@@ -288,6 +289,10 @@ function twister(pts,twisterAmount,centerX,centerY,sizeAdjust) {
 //render
 function render(){
     gl.clear(gl.COLOR_BUFFER_BIT);
+    wireframe = $("#wireframe").is(":checked");
+    if (!wireframe){
     gl.drawArrays(gl.TRIANGLES,0,points.length);
-//     gl.drawArrays(gl.LINE_LOOP,0,points.length);
+    }else{
+    gl.drawArrays(gl.LINE_LOOP,0,points.length);
+    }
 }
