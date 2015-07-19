@@ -26,8 +26,8 @@ var animateTimer;
 var animateDirection = new Object;
 animateDirection.size = 1;
 animateDirection.twist = 1;
-var animateColor;
-
+var animateColor = "B";
+var changeColors = false;
 var program;
 
 //init
@@ -52,11 +52,10 @@ window.onload = function init() {
 }
 
 function colorUpdate(){
-    colorR = $("#colorR").val();
-    colorG = $("#colorG").val();
-    colorB = $("#colorB").val();
-    colorA = $("#colorA").val();
-    
+    colorR = Number($("#colorR").val());
+    colorG = Number($("#colorG").val());
+    colorB = Number($("#colorB").val());
+    colorA = Number($("#colorA").val());
     var glR = gl.getUniformLocation(program,"r");
     gl.uniform1f(glR, colorR);
     var glG = gl.getUniformLocation(program,"g");
@@ -91,13 +90,56 @@ function toggleAnimation(e){
     }
 }
 
+function changeColor(amount){
+    console.log(animateColor);
+    switch(animateColor){
+        case "B": 
+             colorB = colorB + amount;
+             if(colorB >1.0){
+                animateColor = "G";
+                colorB=0.0;
+             }
+             $("#colorB").val(colorB);
+            break;
+        case "G":
+            colorG = colorG + amount;
+             if(colorG >1.0){
+                animateColor = "R";
+                colorG=0.0;
+             }
+             $("#colorG").val(colorG);
+            break;
+        case "R":
+            colorR = colorR + amount;
+             if(colorR >1.0){
+                animateColor = "B";
+                colorR=0.0;
+             }
+             $("#colorR").val(colorR);
+            break;
+        default: console.log("animateColor is invalid value.");break;
+    }
+    colorR = Number($("#colorR").val());
+    colorG = Number($("#colorG").val());
+    colorB = Number($("#colorB").val());
+    
+    var glR = gl.getUniformLocation(program,"r");
+    gl.uniform1f(glR, colorR);
+    var glG = gl.getUniformLocation(program,"g");
+    gl.uniform1f(glG, colorG);
+    var glB = gl.getUniformLocation(program,"b");
+    gl.uniform1f(glB, colorB);
+
+}
+
 function animate(){
-    //TODO: DRY up this into a bounce() function
+    //Someday, figure out how to DRY up this into a bounce() function
     if(size >= $("#size").attr("max")){
             animateDirection.size = -1;
         } else if(size <= $("#size").attr("min")) {
             animateDirection.size=1;
         }
+        
     $("#size").val(Number(size)+animateDirection.size*0.01);
     if(twist >= Number($("#twist").attr("max"))){
             animateDirection.twist = -1;
@@ -105,6 +147,10 @@ function animate(){
             animateDirection.twist = 1;
         }
     $("#twist").val(Number(twist)+animateDirection.twist*5);
+    
+    changeColors = $("#color").is(":checked");
+    console.log(changeColors);
+    if(changeColors){ changeColor(0.01);}
     
     update();
 }
