@@ -70,6 +70,7 @@ label {
     }
 
 .vertical {
+    -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
     margin-left: -5.5em;
     position: relative;
@@ -82,6 +83,7 @@ label {
 }
 
 .color{
+    -webkit-transform: rotate(90deg);
     transform: rotate(-90deg);
 }
 #colorR {
