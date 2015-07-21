@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <title>Assignment 2 | Interactive Computer Graphics with WebGL</title>
+        <link rel="stylesheet" rev="stylesheet" href="../Common/main.css" type="text/css" />
+        <!-- Scripts -->
+        <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+        <script type="text/javascript" src="../Common/initShaders.js"></script>
+        <script type="text/javascript" src="../Common/MV.js"></script>
+        <script type="text/javascript" src="Assig2.js"></script>
+        <!-- GL Shaders; -->
+        <script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+
+void main() {
+    gl_Position = vPosition;
+}
+        </script>
+        <script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+uniform float r;
+uniform float g;
+uniform float b;
+uniform float a;
+
+
+void main() {
+    gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 );
+}
+        </script>
+        
+        </head>
+    <body>
+        <header>
+            <h1>Assignment 2: Painting with the Mouse</h1>
+            <h2><a href="https://class.coursera.org/webgl-001/">Interactive Computer Graphics with WebGL</a></h2>
+        </header>
+        <article>
+            <canvas id="gl-canvas" width="512" height="512" style="/*background: black;*/"> Sorry, your browser doesn't support HTML5 canvas.</canvas>
+        </article>
+        <article id="controls">
+            <h3>Controls</h3>
+            
+        </article>
+    </body>
+</html>
