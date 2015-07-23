@@ -87,7 +87,7 @@ function addPoint(e){
 }
 
 function brushDown(e){
-    console.log("brushDown");
+    //console.log("brushDown");
 //     $("#gl-canvas").mousemove(brushMove);
     brushing = true;
     
@@ -97,15 +97,16 @@ function brushDown(e){
 }
 
 function brushMove(e){
-    console.log("brushMove; brushing = "+brushing);
+    //console.log("brushMove; brushing = "+brushing);
     if(brushing){
+        addPoint(e);
         addPoint(e);
         requestAnimFrame(render);
     }
 }
 
 function brushUp(e){
-    console.log("brushUp");
+    //console.log("brushUp");
 //     $("#gl-canvas").off("mousemove");
     brushing = false;
     addPoint(e);
@@ -123,6 +124,7 @@ function render(){
     gl.enableVertexAttribArray(vPosition);
     
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.LINE_STRIP,0,points.length);
+    gl.drawArrays(gl.LINES,0,points.length);
+//     points= Array(points.pop());
 
 }
