@@ -68,13 +68,14 @@ var colorR;
 var colorG;
 var colorB;
 var colorA;
-var currentColor;
+var thickness;
 
 window.onload = function init(){
-    colorR = new inputVar("colorR",colorCallback);
+    colorR = new inputVar("colorR");
     colorG = new inputVar("colorG");
     colorB = new inputVar("colorB");
     colorA = new inputVar("colorA");
+    thickness = new inputVar("thickness");
 
     $("#gl-canvas").mousedown(brushDown).mouseup(brushUp)
     document.onmousemove=brushMove;
@@ -96,10 +97,6 @@ function colorCallback(c){
     console.log("Color Callback:", c);
 }
 
-// function changeColor(){
-//     console.log("changingColor");
-//     currentColor = Array(colorR.v, colorG.v,colorB.v,colorA.v);
-// }
 
 function addPoint(e){
     if(!e) var e = window.event;
@@ -127,6 +124,7 @@ function brushDown(e){
     requestAnimFrame(render);
     
 }
+
 
 function brushMove(e){
     //console.log("brushMove; brushing = "+brushing);
@@ -166,4 +164,33 @@ function render(){
     gl.drawArrays(gl.LINES,0,points.length);
 //     points= Array(points.pop());
 
+}
+
+
+//Control functions
+function fix(){
+//     brushUp({pageX:300,pageY:300});
+    brushing = false;
+    var t=points.pop()
+    points.push(t,t);
+    colors.push(colorR.val(), colorG.val(),colorB.val(),colorA.val() );
+    requestAnimFrame(render);
+    
+}
+var redoPoints = Array();
+var redoColors = Array();
+function undo(){
+    redoPoints.splice(0,0,points.splice(-2,2));
+    redoColors.splice(0,0,colors.splice(-8,8));
+    requestAnimFrame(render);
+}
+function redo(){
+        if(redoPoints.length>0){
+        points.splice(points.length,0,redoPoints.splice(0,2));
+        //colors.splice(colors.length,0,redoColors.splice(0,3));
+        for(var i=0;i<4;i++){
+            colors.push(redoColors.shift());
+        }
+        }
+    requestAnimFrame(render);
 }

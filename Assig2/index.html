@@ -50,14 +50,19 @@ void main() {
         </article>
         <article id="controls">
             <h3>Controls</h3>
-            <p>Note:  Windows systems might not support line width changes (<a href="https://class.coursera.org/webgl-001/forum/thread?thread_id=167#post-767">Discussion forum</a>). In addition, Chrome has a known bug with detecting mouse movement. If this does not work please clear the cache.</p> 
+            <p><input type="button" value="Fix straight lines on click error."  onclick="fix();"/></p> 
             <p class="colors">
             <label>Color<br/>(RGBA)</label>
                 <input type="range" id="colorR" min="0" max="1" step="0.01" value="1" class="controls color"/>
                 <input type="range" id="colorG" min="0" max="1" step="0.01" value="0" class="controls color"/>
                 <input type="range" id="colorB" min="0" max="1" step="0.01" value="1" class="controls color"/>
                 <input type="range" id="colorA" min="0" max="1" step="0.01" value= 1 class="controls color"/>
-            </p>           
+            </p>
+            <p><input type="button" value="Undo" onclick="undo();" />
+<!--             <input type="button" value="Redo" onclick="redo();" /> -->
+            </p>
+            <p><label for="thickness">Line thickness</label><input type="range" id="thickness" min="1" max="24" step="1" value="1" class="controls" />
+                       
         </article>
     </body>
 </html>
