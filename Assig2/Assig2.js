@@ -80,11 +80,13 @@ window.onload = function init(){
     $("#gl-canvas").mousedown(brushDown).mouseup(brushUp)
     document.onmousemove=brushMove;
     canvas = document.getElementById("gl-canvas");
-     gl = WebGLUtils.setupWebGL(canvas, {preserveDrawingBuffer: true});
+     gl = WebGLUtils.setupWebGL(canvas, {preserveDrawingBuffer: true, alpha:false});
     if(!gl) {alert("WebGL Isnt Available!");}
     //Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0,0.0,0.0,1.0);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+gl.enable(gl.BLEND);
     program = initShaders( gl,"vertex-shader","fragment-shader");
     gl.useProgram(program);
     
