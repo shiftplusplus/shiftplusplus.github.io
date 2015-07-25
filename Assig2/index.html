@@ -48,21 +48,31 @@ void main() {
         <article>
             <canvas id="gl-canvas" width="512" height="512" style="/*background: black;*/"> Sorry, your browser doesn't support HTML5 canvas.</canvas>
         </article>
-        <article id="controls">
+        <article id="controls" style="position: absolute;">
             <h3>Controls</h3>
-            <p><input type="button" value="Fix straight lines on click error."  onclick="fix();"/></p> 
+            <p>If you dragged off the canvas and you cannot now drag for a smooth curve,<input type="button" value="fix it"  onclick="fix();"/>.</p> 
+            <p>
+            Store current primitives and make a new one:
+            <input type="button" value="New Primitive" onclick="newPrimitive();"/>
+            </p>
+            <p><input type="button" value="Undo last point" onclick="undo();" />
+<!--             <input type="button" value="Redo" onclick="redo();" /> -->
+            </p>
+            <p>
+            <label for="thickness">Line thickness</label><input type="range" id="thickness" min="0.1" max="24" step="0.1" value="2" class="controls" />
+            </p>
+            
             <p class="colors">
             <label>Color<br/>(RGBA)</label>
                 <input type="range" id="colorR" min="0" max="1" step="0.01" value="1" class="controls color"/>
-                <input type="range" id="colorG" min="0" max="1" step="0.01" value="0" class="controls color"/>
+                <input type="range" id="colorG" min="0" max="1" step="0.01" value="1" class="controls color"/>
                 <input type="range" id="colorB" min="0" max="1" step="0.01" value="1" class="controls color"/>
                 <input type="range" id="colorA" min="0" max="1" step="0.01" value= 1 class="controls color"/>
             </p>
-            <p><input type="button" value="Undo" onclick="undo();" />
-<!--             <input type="button" value="Redo" onclick="redo();" /> -->
-            </p>
-            <p><label for="thickness">Line thickness</label><input type="range" id="thickness" min="1" max="24" step="1" value="1" class="controls" />
-                       
+            <p>
+            <br/>
+            <a href="" id="download" download onclick="save()">Download image</a>
+            </p>      
         </article>
     </body>
 </html>

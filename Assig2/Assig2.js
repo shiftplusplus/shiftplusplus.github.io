@@ -59,6 +59,15 @@ function inputVar(id, change){
     return this;
 }
 
+function findNewPoint(x, y, angle, distance) {
+//     console.log(x,y,angle,distance);
+    var point = {};
+    point.x = Math.cos(angle)*distance+x;
+    point.y = Math.sin(angle)*distance+y;
+
+    return point;
+}
+
 var canvas;
 var program;
 var points = Array();
@@ -69,13 +78,17 @@ var colorG;
 var colorB;
 var colorA;
 var thickness;
+var cBuffer;
+var bufferID;
+var triangleColors;
+var triangles;
 
 window.onload = function init(){
-    colorR = new inputVar("colorR");
-    colorG = new inputVar("colorG");
-    colorB = new inputVar("colorB");
-    colorA = new inputVar("colorA");
-    thickness = new inputVar("thickness");
+    colorR = new inputVar("colorR",update);
+    colorG = new inputVar("colorG",update);
+    colorB = new inputVar("colorB",update);
+    colorA = new inputVar("colorA",update);
+    thickness = new inputVar("thickness",update);
 
     $("#gl-canvas").mousedown(brushDown).mouseup(brushUp)
     document.onmousemove=brushMove;
@@ -89,7 +102,8 @@ window.onload = function init(){
 gl.enable(gl.BLEND);
     program = initShaders( gl,"vertex-shader","fragment-shader");
     gl.useProgram(program);
-    
+    cBuffer = gl.createBuffer();
+    bufferID = gl.createBuffer();
     
 //     changeColor();
     requestAnimFrame(render);
@@ -147,23 +161,60 @@ function brushUp(e){
 
 
 function render(){
-    var cBuffer = gl.createBuffer();
+    //turn points into triangles
+    triangles = Array();
+    for(var i=0;i<(points.length-1);i=i+2){
+        start = points[i];
+        end = points[i+1];
+        if(i+2>=points.length){
+            miter=end;
+        }else{
+            miter = points[i+2];
+        }
+        theta = Math.atan2((end[1]-start[1]),(end[0]-start[0]));
+        theta1 = theta + (Math.PI/2);
+        theta2 = theta - (Math.PI/2);
+        thetaM = Math.atan2((miter[1]-end[1]),(miter[0]-end[0]));
+        theta3 = thetaM + (Math.PI/2);
+        theta4 = thetaM - (Math.PI/2);
+        thick = thickness.val()/150;
+        tri1 = findNewPoint(start[0],start[1],theta1,thick);
+        tri2 = findNewPoint(start[0],start[1],theta2,thick);
+        tri3 = findNewPoint(end[0],end[1],theta1,thick);
+        tri4 = findNewPoint(end[0],end[1],theta2,thick);
+//         console.log(tri1);
+        triangles.push( vec2(tri1.x,tri1.y), vec2(tri2.x,tri2.y), vec2(tri4.x,tri4.y));
+        triangles.push( vec2(tri1.x,tri1.y), vec2(tri3.x,tri3.y), vec2(tri4.x,tri4.y));        
+    }
+//     console.log(colors.length / points.length);
+     triangleColors=Array();
+    for(var i = 0; i<colors.length; i++){
+//         for(var j=0; j<3; j++){
+//         triangleColors.push(colors[j+i]);
+//         }
+    triangleColors.push(colorR.val());
+    triangleColors.push(colorG.val());
+    triangleColors.push(colorB.val());
+    triangleColors.push(colorA.val());
+    }
+//     console.log(triangleColors.length,triangles.length, triangleColors.length/triangles.length);
+     cBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(triangleColors), gl.STATIC_DRAW);
     var vColor = gl.getAttribLocation(program, "vColor");
     gl.vertexAttribPointer( vColor, 4, gl.FLOAT,false,0,0);
     gl.enableVertexAttribArray(vColor);
 
-    var bufferID = gl.createBuffer();
+     bufferID = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(points),gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(triangles),gl.STATIC_DRAW);
     var vPosition = gl.getAttribLocation( program,"vPosition");
     
     gl.vertexAttribPointer( vPosition,2,gl.FLOAT,false,0,0);
     gl.enableVertexAttribArray(vPosition);
     
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.LINES,0,points.length);
+//     gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,triangles.length);
 //     points= Array(points.pop());
 
 }
@@ -184,6 +235,7 @@ var redoColors = Array();
 function undo(){
     redoPoints.splice(0,0,points.splice(-2,2));
     redoColors.splice(0,0,colors.splice(-8,8));
+    update();
     requestAnimFrame(render);
 }
 function redo(){
@@ -194,5 +246,52 @@ function redo(){
             colors.push(redoColors.shift());
         }
         }
+    requestAnimFrame(render);
+}
+
+function save(e){
+    document.getElementById("download").href = canvas.toDataURL();
+    return true;
+}
+
+// var colorBuffers=Array();
+// var pointBuffers=Array();
+var oldColors = Array();
+var oldPoints = Array();
+function newPrimitive(){
+//     colorBuffers.push(cBuffer);
+//     pointBuffers.push(bufferID);
+    oldColors.push(triangleColors);
+    oldPoints.push(triangles);
+    points=Array();
+    colors = Array();
+    cBuffer = gl.createBuffer();
+    bufferID = gl.createBuffer();    
+    update();
+}
+
+function update(){
+    
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    for (var i=0;i<oldPoints.length; i++){
+        var cBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(oldColors[i]), gl.STATIC_DRAW);
+        var vColor = gl.getAttribLocation(program, "vColor");
+        gl.vertexAttribPointer( vColor, 4, gl.FLOAT,false,0,0);
+        gl.enableVertexAttribArray(vColor);
+
+        var bufferID = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
+        gl.bufferData(gl.ARRAY_BUFFER,    flatten(oldPoints[i]),gl.STATIC_DRAW);
+        var vPosition = gl.getAttribLocation( program,"vPosition");
+    
+        gl.vertexAttribPointer( vPosition,2,gl.FLOAT,false,0,0);
+        gl.enableVertexAttribArray(vPosition);
+    
+    //     gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLE_STRIP,0,oldPoints[i].length);
+    //     points= Array(points.pop());
+    }
     requestAnimFrame(render);
 }
