@@ -17,26 +17,35 @@ function inputVar(id, change){
     if(id){
         this.element = document.getElementById(id);
         this.val = function(x){
-        if(x){ //set
-            this.element.value=x;
-            this.v = x
-            if(this.change != null){
-                this.change(this);
+            if(x){ //set
+                this.element.value=x;
+                this.v = x
+                if(this.change != null){
+                    this.change(this);
+                }
+            }else{ //get
+                this.v = this.element.value;
+                return this.v;
             }
-        }else{ //get
-            this.v = this.element.value;
         }
-    }
+        var x=this;
+//         console.log(this.element,this.element.onchange);
+        this.element.onchange = function(){
+            x.v=x.val(this.value);
+//             console.log(this,x,this.value,x.v);
+        };
+//         console.log(this.element,this.element.onchange);
     }else{
-    this.v = this.val()
     this.val = function(x){
         if(x){ //set
-            this.v = x
+            this.v = x;
+            this.element.value = x;
             if(this.change != null){
                 this.change(this);
             }
         }else{ //get
-            this.v = this.element.value;
+//         this.v=this.element.value;
+            return this.v;
         }
     }
     }
@@ -45,6 +54,7 @@ function inputVar(id, change){
     }else{
         this.change=change;
     }
+    this.v = this.val();
     
     return this;
 }
@@ -52,23 +62,44 @@ function inputVar(id, change){
 var canvas;
 var program;
 var points = Array();
-var colors;
+var colors = Array();
 var brushing = false;
+var colorR;
+var colorG;
+var colorB;
+var colorA;
+var currentColor;
 
 window.onload = function init(){
+    colorR = new inputVar("colorR",colorCallback);
+    colorG = new inputVar("colorG");
+    colorB = new inputVar("colorB");
+    colorA = new inputVar("colorA");
+
     $("#gl-canvas").mousedown(brushDown).mouseup(brushUp)
     document.onmousemove=brushMove;
     canvas = document.getElementById("gl-canvas");
-     gl = WebGLUtils.setupWebGL(canvas);
+     gl = WebGLUtils.setupWebGL(canvas, {preserveDrawingBuffer: true});
     if(!gl) {alert("WebGL Isnt Available!");}
     //Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0,0.0,0.0,1.0);
-    
     program = initShaders( gl,"vertex-shader","fragment-shader");
     gl.useProgram(program);
+    
+    
+//     changeColor();
     requestAnimFrame(render);
 }
+
+function colorCallback(c){
+    console.log("Color Callback:", c);
+}
+
+// function changeColor(){
+//     console.log("changingColor");
+//     currentColor = Array(colorR.v, colorG.v,colorB.v,colorA.v);
+// }
 
 function addPoint(e){
     if(!e) var e = window.event;
@@ -84,6 +115,7 @@ function addPoint(e){
     var t=vec2(x,y);
 //     var t = vec2(-1 + (2*e.clientX)/canvas.width, -1-2*(e.clientY)/canvas.height);
     points.push(t);
+    colors.push(colorR.val(), colorG.val(),colorB.val(),colorA.val() );
 }
 
 function brushDown(e){
@@ -115,6 +147,13 @@ function brushUp(e){
 
 
 function render(){
+    var cBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW);
+    var vColor = gl.getAttribLocation(program, "vColor");
+    gl.vertexAttribPointer( vColor, 4, gl.FLOAT,false,0,0);
+    gl.enableVertexAttribArray(vColor);
+
     var bufferID = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(points),gl.STATIC_DRAW);
