@@ -92,18 +92,18 @@ function toggleAnimation(e){
     if(!amAnimating){
     console.log("start");
     amAnimating=true;
-//     animateTimer = setInterval(animate,1000/30);
+    animateTimer = setInterval(animate,1000/30);
    $("#gl-canvas").mousemove(clickUpdate); //When animating, this does not call update(), preventing double updating.
     size= 0.05;
     $("#size").val(size);
     twist = -1080;
     $("#twist").val(twist);
-    animate();
+//     animate();
 
     }else {
     console.log("stop");
     amAnimating=false;
-//     clearInterval(animateTimer);
+    clearInterval(animateTimer);
     $("#gl-canvas").off('mousemove');
 
     }
@@ -196,7 +196,7 @@ function animate(){
     if(changeColors){ changeColor(0.01);}
     
     update();
-    if(amAnimating){requestAnimFrame(animate);}
+//     if(amAnimating){requestAnimFrame(animate);}
 }
 
 function clickUpdate(e){
@@ -243,8 +243,8 @@ function update(e){
     for(i=0; i<vertices.length; i++){
         var endpointIndex = i+1;
         if(endpointIndex== vertices.length){endpointIndex=0;}
-        if(tessellateWorkers /*&& !amAnimating*/){
-//            if(tessellateWorkers[i]!== undefined) tessellateWorkers[i].terminate();
+        if(tessellateWorkers && !amAnimating){
+           if(tessellateWorkers[i]!== undefined) tessellateWorkers[i].terminate();
             tessellateWorkers[i] = new Worker("tessellate.js");
             tessellateWorkers[i].onmessage=finishUpdate;
             var sendData = {};
@@ -265,7 +265,7 @@ var tempPoints=[];
 function finishUpdate(e){
     updateTracker++;
     if(e){
-        console.log("finishing; from Worker");
+//         console.log("finishing; from Worker");
         tempPoints = tempPoints.concat(e.data);
     }    
     if(updateTracker==sides){
