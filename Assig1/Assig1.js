@@ -219,7 +219,7 @@ function update(e){
     if(!e) var e = window.event;
     //e = event
     //this = HMTL element triggering it.
-
+    tempPoints=[];
     //Set all variables
     size = $("#size").val();
     gl.uniform1f(glSizeAdjust, size);
@@ -263,14 +263,16 @@ function update(e){
 }
 var tempPoints=[];
 function finishUpdate(e){
-    updateTracker++;
     if(e){
+    updateTracker++;
 //         console.log("finishing; from Worker");
         tempPoints = tempPoints.concat(e.data);
-    }    
-    if(updateTracker==sides){
+if(updateTracker==sides){
     updateTracker = 0;
     points=tempPoints;
+        }
+    }
+
     var bufferID = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(points),gl.STATIC_DRAW);
@@ -281,7 +283,7 @@ function finishUpdate(e){
 
     requestAnimFrame(render);
     }
-}
+
 
 
 //Helper: display 1 triangle
