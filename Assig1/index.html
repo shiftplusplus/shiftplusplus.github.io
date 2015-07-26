@@ -11,10 +11,21 @@
         <script type="text/javascript" src="Assig1.js"></script>
         <!-- GL Shaders; basic -->
         <script id="vertex-shader" type="x-shader/x-vertex">
+const float PI = 3.14159265358979323846264;
 attribute vec4 vPosition;
-
+uniform float twist;
+uniform float centerX;
+uniform float centerY;
+uniform float sizeAdjust;
+float newX;
+float newY;
 void main() {
-    gl_Position = vPosition;
+    float d = (PI/180.0) * sqrt( (vPosition.x-centerX)*(vPosition.x-centerX)+(vPosition.y-centerY)*+(vPosition.y-centerY));
+        float newX = vPosition.x*cos(d*twist)-vPosition.y*sin(d*twist);
+        float newY = vPosition.x*sin(d*twist)+vPosition.y*cos(d*twist);
+
+        gl_Position = vec4(newX*sizeAdjust,newY*sizeAdjust,0,1);
+//      gl_Position = vPosition;
 }
         </script>
         <script id="fragment-shader" type="x-shader/x-fragment">
@@ -29,7 +40,13 @@ void main() {
     gl_FragColor = vec4( r, g, b, a );
 }
         </script>
-        
+                <style type="text/css">
+article#controls{
+    width:25%;
+    min-width:200px;
+    max-width:250px;
+}
+        </style>
         </head>
     <body>
         <header>

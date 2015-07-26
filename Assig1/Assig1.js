@@ -30,6 +30,16 @@ var animateColor = "B";
 var changeColors = false;
 var program;
 var wireframe = false;
+var tessellateWorkers;
+var glR;
+var glG;
+var glB;
+var glA;
+var glTwist;
+var glCenterX;
+var glCenterY;
+var glSizeAdjust;
+var updateTracker = 0;
 
 //init
 window.onload = function init() {
@@ -47,8 +57,20 @@ window.onload = function init() {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0,0.0,0.0,1.0);
     
+    if(typeof(Worker) !== "undefined"){
+        tessellateWorkers = Array();
+    }//else is handled by checks to see if worker exists.
+    
     program = initShaders( gl,"vertex-shader","fragment-shader");
     gl.useProgram(program);
+     glR = gl.getUniformLocation(program,"r");
+     glG = gl.getUniformLocation(program,"g");
+     glB = gl.getUniformLocation(program,"b");
+     glA = gl.getUniformLocation(program,"a");
+     glTwist = gl.getUniformLocation(program, "twist");
+     glCenterX = gl.getUniformLocation(program, "centerX");
+     glCenterY = gl.getUniformLocation(program, "centerY");
+     glSizeAdjust = gl.getUniformLocation(program, "sizeAdjust");
     colorUpdate();
 }
 
@@ -57,13 +79,9 @@ function colorUpdate(){
     colorG = Number($("#colorG").val());
     colorB = Number($("#colorB").val());
     colorA = Number($("#colorA").val());
-    var glR = gl.getUniformLocation(program,"r");
     gl.uniform1f(glR, colorR);
-    var glG = gl.getUniformLocation(program,"g");
     gl.uniform1f(glG, colorG);
-    var glB = gl.getUniformLocation(program,"b");
     gl.uniform1f(glB, colorB);
-    var glA = gl.getUniformLocation(program,"a");
     gl.uniform1f(glA, colorA);
     
     update();
@@ -74,18 +92,18 @@ function toggleAnimation(e){
     if(!amAnimating){
     console.log("start");
     amAnimating=true;
-    animateTimer = setInterval(animate,1000/30);
+//     animateTimer = setInterval(animate,1000/30);
    $("#gl-canvas").mousemove(clickUpdate); //When animating, this does not call update(), preventing double updating.
     size= 0.05;
     $("#size").val(size);
     twist = -1080;
     $("#twist").val(twist);
-    
+    animate();
 
     }else {
     console.log("stop");
     amAnimating=false;
-    clearInterval(animateTimer);
+//     clearInterval(animateTimer);
     $("#gl-canvas").off('mousemove');
 
     }
@@ -150,11 +168,9 @@ function changeColor(amount){
     colorG = Number($("#colorG").val());
     colorB = Number($("#colorB").val());
     
-    var glR = gl.getUniformLocation(program,"r");
+   
     gl.uniform1f(glR, colorR);
-    var glG = gl.getUniformLocation(program,"g");
     gl.uniform1f(glG, colorG);
-    var glB = gl.getUniformLocation(program,"b");
     gl.uniform1f(glB, colorB);
 
 }
@@ -180,6 +196,7 @@ function animate(){
     if(changeColors){ changeColor(0.01);}
     
     update();
+    if(amAnimating){requestAnimFrame(animate);}
 }
 
 function clickUpdate(e){
@@ -205,12 +222,16 @@ function update(e){
 
     //Set all variables
     size = $("#size").val();
+    gl.uniform1f(glSizeAdjust, size);
     sides = $("#sides").val();
     tessellations = $("#tessellations").val();
     twist = $("#twist").val();
+    gl.uniform1f(glTwist, twist);
     fractal = $("#fractal").is(":checked"); //checkboxes are weird
     centerX = $("#centerX").val(); 
+        gl.uniform1f(glCenterX, centerX);
     centerY = $("#centerY").val();
+        gl.uniform1f(glCenterY, centerY);
     points = null;
     points = [];
 
@@ -222,10 +243,34 @@ function update(e){
     for(i=0; i<vertices.length; i++){
         var endpointIndex = i+1;
         if(endpointIndex== vertices.length){endpointIndex=0;}
-        tessellate (vec2(0,0),vertices[i],vertices[endpointIndex], tessellations);
+        if(tessellateWorkers /*&& !amAnimating*/){
+//            if(tessellateWorkers[i]!== undefined) tessellateWorkers[i].terminate();
+            tessellateWorkers[i] = new Worker("tessellate.js");
+            tessellateWorkers[i].onmessage=finishUpdate;
+            var sendData = {};
+            sendData.a=vec2(0,0);
+            sendData.b=vertices[i]; 
+            sendData.c=vertices[endpointIndex];
+            sendData.count = tessellations;
+            sendData.fractal = fractal;
+            tessellateWorkers[i].postMessage(sendData);
+        }else{
+            tessellate (vec2(0,0),vertices[i],vertices[endpointIndex], tessellations);
+            finishUpdate();
     }    
-    points = JSON.parse(JSON.stringify(twister(points,twist,centerX,centerY,size)));
-    
+//     points = JSON.parse(JSON.stringify(twister(points,twist,centerX,centerY,size)));
+}
+}
+var tempPoints=[];
+function finishUpdate(e){
+    updateTracker++;
+    if(e){
+        console.log("finishing; from Worker");
+        tempPoints = tempPoints.concat(e.data);
+    }    
+    if(updateTracker==sides){
+    updateTracker = 0;
+    points=tempPoints;
     var bufferID = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bufferID);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(points),gl.STATIC_DRAW);
@@ -234,14 +279,16 @@ function update(e){
     gl.vertexAttribPointer( vPosition,2,gl.FLOAT,false,0,0);
     gl.enableVertexAttribArray(vPosition);
 
-    render()
+    requestAnimFrame(render);
+    }
 }
 
 
 //Helper: display 1 triangle
 function triangle(a,b,c){
     points.push(a,b,c);
-    }
+}
+    
 //tessellationater
 function tessellate(a,b,c,count){
   //check for end of recursion
@@ -264,6 +311,7 @@ function tessellate(a,b,c,count){
     
     }
 }
+
 
 //twisterer
 function twister(pts,twisterAmount,centerX,centerY,sizeAdjust) {
