@@ -86,19 +86,23 @@ label {
     -webkit-transform: rotate(90deg);
     transform: rotate(-90deg);
 }
-#colorR {
+[id$="colorR"] {
     position: absolute;
-    left: 0px
+    left: 0px;
     }
-#colorG {
+[id$="colorG"] {
     position: absolute;
-    left: 20px
+    left: 20px;
     }
-#colorB {
+[id$="colorB"] {
     position: absolute;
-    left: 40px
+    left: 40px;
     }
-#colorA {
+[id$="colorA"] {
     position: absolute;
-    left: 60px
+    left: 60px;
     }
+    
+[id^="bg"] {
+    width: 70px;
+}

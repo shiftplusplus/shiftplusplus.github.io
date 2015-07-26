@@ -77,6 +77,10 @@ var colorR;
 var colorG;
 var colorB;
 var colorA;
+var bgcolorR;
+var bgcolorG;
+var bgcolorB;
+var bgcolorA;
 var thickness;
 var cBuffer;
 var bufferID;
@@ -89,6 +93,9 @@ window.onload = function init(){
     colorB = new inputVar("colorB",update);
     colorA = new inputVar("colorA",update);
     thickness = new inputVar("thickness",update);
+    bgcolorR = new inputVar("bgcolorR",bgcolorUpdate);
+    bgcolorG = new inputVar("bgcolorG",bgcolorUpdate);
+    bgcolorB = new inputVar("bgcolorB",bgcolorUpdate);
 
     $("#gl-canvas").mousedown(brushDown).mouseup(brushUp)
     document.onmousemove=brushMove;
@@ -97,7 +104,7 @@ window.onload = function init(){
     if(!gl) {alert("WebGL Isnt Available!");}
     //Configure WebGL
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.0,0.0,0.0,1.0);
+    gl.clearColor( bgcolorR.val(), bgcolorG.val(), bgcolorB.val(), 1.0);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 gl.enable(gl.BLEND);
     program = initShaders( gl,"vertex-shader","fragment-shader");
@@ -294,4 +301,9 @@ function update(){
     //     points= Array(points.pop());
     }
     requestAnimFrame(render);
+}
+
+function bgcolorUpdate(){
+    gl.clearColor( bgcolorR.val(), bgcolorG.val(), bgcolorB.val(), 1.0);
+    update();
 }
