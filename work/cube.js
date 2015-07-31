@@ -94,15 +94,15 @@ function quad(a, b, c, d)
         vec4(  0.5, -0.5, -0.5, 1.0 )
     ];
 
-    var vertexColors = [
+   var vertexColors = [          //appx:
         [ 0.0, 0.0, 0.0, 1.0 ],  // black
-        [ 1.0, 0.0, 0.0, 1.0 ],  // red
-        [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
-        [ 0.0, 1.0, 0.0, 1.0 ],  // green
-        [ 0.0, 0.0, 1.0, 1.0 ],  // blue
-        [ 1.0, 0.0, 1.0, 1.0 ],  // magenta
-        [ 0.0, 1.0, 1.0, 1.0 ],  // cyan
-        [ 1.0, 1.0, 1.0, 1.0 ]   // white
+        [ 0.9, 0.0, 0.0, 1.0 ],  // red
+        [ 0.9, 0.9, 0.0, 1.0 ],  // yellow
+        [ 0.0, 0.9, 0.0, 1.0 ],  // green
+        [ 0.0, 0.0, 0.9, 1.0 ],  // blue
+        [ 0.9, 0.0, 0.9, 1.0 ],  // magenta
+        [ 0.0, 0.9, 0.9, 1.0 ],  // cyan
+        [ 0.9, 0.9, 0.9, 1.0 ]   // white
     ];
 
     // We need to parition the quad into two triangles in order for
@@ -115,10 +115,10 @@ function quad(a, b, c, d)
 
     for ( var i = 0; i < indices.length; ++i ) {
         points.push( vertices[indices[i]] );
-        //colors.push( vertexColors[indices[i]] );
+        colors.push( vertexColors[indices[i]] );
 
         // for solid colored faces use
-        colors.push(vertexColors[a]);
+//        colors.push(vertexColors[a]);
 
     }
 }
