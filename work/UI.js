@@ -20,10 +20,10 @@ function InputVar(id, change){
          if(this.element.selectedIndex ==-1){
             this.element.selectedIndex == 0;
          }
-//         if(this.element.selectedIndex !=-1){
+         //         if(this.element.selectedIndex !=-1){
          try{this.v=this.options[this.element.selectedIndex].value;}
          catch(e){
-//            console.warn(e,this);
+            //            console.warn(e,this);
             this.v = null;
          }
       }
@@ -41,7 +41,7 @@ function InputVar(id, change){
                   }
                }
                if(!found){
-//                  console.warn("No Radio Button in group "+this.id+" has the value "+x+"; creating new radio button in parent of and before the first.");
+                  //                  console.warn("No Radio Button in group "+this.id+" has the value "+x+"; creating new radio button in parent of and before the first.");
                   var newRad = document.createElement('input');
                   newRad.type = "radio";
                   newRad.name = this.id;
@@ -62,7 +62,7 @@ function InputVar(id, change){
                   }
                }
                if(!found){
-//                  console.warn("No option in select "+this.id+" has the value "+x+"; creating option at the end.")
+                  //                  console.warn("No option in select "+this.id+" has the value "+x+"; creating option at the end.")
                   var newOption = document.createElement('option');
                   newOption.value=x;
                   newOption.text=x.toString();
@@ -101,7 +101,7 @@ function InputVar(id, change){
          }
       }else{
          
-//         console.log(this);
+         //         console.log(this);
          
          this.element.onchange = this.onupdate;
          this.element.onpaste = this.onupdate;
@@ -113,7 +113,7 @@ function InputVar(id, change){
       this.val = function(x){
          if(x || this.v==undefined){ //set
             if(x){
-            this.v = x;
+               this.v = x;
             }else{
                this.v = this.element.value;
             }
@@ -179,9 +179,9 @@ function DrawObject(options){
    this.radius=1;
    this.height=1;
    this.color = {};
-   this.color.r = 1;
-   this.color.g =1;
-   this.color.b = 1;
+   this.color.r = 0;
+   this.color.g =0;
+   this.color.b = 0;
    this.color.a = 1;
    
    if(options){
@@ -193,24 +193,24 @@ function DrawObject(options){
    }
    
    //each object must supply its own GL buffers
-   this.program = initShaders(gl,"vertex-shader","fragment-shader");
-   gl.useProgram(this.program);
-   this.cBuffer = gl.createBuffer();
-   this.vBuffer = gl.createBuffer();
-   this.sendColor = function(){
-      gl.useProgram(this.program);
-      gl.bindBuffer(gl.ARRAY_BUFFER,this.cBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER,flatten([this.color.r,this.color.g,this.color.b,this.color.a]),gl.STATIC_DRAW);
-      this.vColor = gl.getAttribLocation(program,"vColor");
-      gl.vertexAttribPointer(vColor,4,gl.FLOAT,false,0,0);
-      gl.enableVertexAttribArray(vColor);
-   }
-   this.sendVertices = function(points){
-      gl.useProgram(this.program);
-      gl.bindBuffer(gl.ARRAY_BUFFER,this.vBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER,flatten(points),gl.STATIC_DRAW);
-   }
-   
+   //   this.program = initShaders(gl,"vertex-shader","fragment-shader");
+   //   gl.useProgram(this.program);
+   //   this.cBuffer = gl.createBuffer();
+   //   this.vBuffer = gl.createBuffer();
+   //   this.sendColor = function(){
+   //      gl.useProgram(this.program);
+   //      gl.bindBuffer(gl.ARRAY_BUFFER,this.cBuffer);
+   //      gl.bufferData(gl.ARRAY_BUFFER,flatten([this.color.r,this.color.g,this.color.b,this.color.a]),gl.STATIC_DRAW);
+   //      this.vColor = gl.getAttribLocation(this.program,"vColor");
+   //      gl.vertexAttribPointer(this.vColor,4,gl.FLOAT,false,0,0);
+   //      gl.enableVertexAttribArray(this.vColor);
+   //   }
+   //   this.sendVertices = function(points){
+   //      gl.useProgram(this.program);
+   //      gl.bindBuffer(gl.ARRAY_BUFFER,this.vBuffer);
+   //      gl.bufferData(gl.ARRAY_BUFFER,flatten(points),gl.STATIC_DRAW);
+   //   }
+   //
    this.toString = function(){
       return this.type+"@("+this.location.x+","+this.location.y+","+this.location.z+"); orientation("+this.rotation.x+","+this.rotation.y+","+this.rotation.z+"); color("+this.color.r+","+this.color.g+","+this.color.b+","+this.color.a+")";
    }
@@ -242,12 +242,14 @@ window.onload = function init(){
    canvas = document.getElementById("gl-canvas");
    window.onresize = scaleCanvas;
    scaleCanvas();
-   gl = WebGLUtils.setupWebGL( canvas );
+   gl = WebGLUtils.setupWebGL(canvas, {preserveDrawingBuffer: true, alpha:false});
    if ( !gl ) { alert( "WebGL isn't available" ); }
    
    gl.viewport( 0, 0, canvas.width, canvas.height );
    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
    gl.enable(gl.DEPTH_TEST);
+   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+   gl.enable(gl.BLEND);
    
    locX = new LinkedVar("locX","locX2",updateObject);
    locY = new LinkedVar("locY","locY2",updateObject);
@@ -267,10 +269,88 @@ window.onload = function init(){
    document.getElementById("newObject").onclick= newObject;
    document.getElementById("delObject").onclick= deleteObject;
    
+   
    newObject();
+   render();
    
 }
 //Core functions
+var points = []
+function render(){
+   
+   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+   for(var i=0;i<objects.length;i++){
+      
+      //Generate geometry
+      points = [];
+      switch(objects[i].type){
+         case "cube":
+                        colorCube(objects[i].height);
+//            points= JSON.parse("[[-0.5,0.5,0.5,1],[-0.5,-0.5,0.5,1],[0.5,-0.5,0.5,1],[-0.5,0.5,0.5,1],[0.5,-0.5,0.5,1],[0.5,0.5,0.5,1],[0.5,0.5,0.5,1],[0.5,-0.5,0.5,1],[0.5,-0.5,-0.5,1],[0.5,0.5,0.5,1],[0.5,-0.5,-0.5,1],[0.5,0.5,-0.5,1],[0.5,-0.5,0.5,1],[-0.5,-0.5,0.5,1],[-0.5,-0.5,-0.5,1],[0.5,-0.5,0.5,1],[-0.5,-0.5,-0.5,1],[0.5,-0.5,-0.5,1],[0.5,0.5,-0.5,1],[-0.5,0.5,-0.5,1],[-0.5,0.5,0.5,1],[0.5,0.5,-0.5,1],[-0.5,0.5,0.5,1],[0.5,0.5,0.5,1],[-0.5,-0.5,-0.5,1],[-0.5,0.5,-0.5,1],[0.5,0.5,-0.5,1],[-0.5,-0.5,-0.5,1],[0.5,0.5,-0.5,1],[0.5,-0.5,-0.5,1],[-0.5,0.5,-0.5,1],[-0.5,-0.5,-0.5,1],[-0.5,-0.5,0.5,1],[-0.5,0.5,-0.5,1],[-0.5,-0.5,0.5,1],[-0.5,0.5,0.5,1]]")
+            break;
+         case "sphere":
+            break;
+         case "cylinder":
+            break;
+      }
+      
+      
+      objects[i].program = initShaders( gl, "vertex-shader", "fragment-shader" );
+      gl.useProgram( objects[i].program );
+      
+      objects[i].colorLoc = gl.getUniformLocation(objects[i].program,"fColor");
+      gl.uniform4fv(objects[i].colorLoc,vec4(objects[i].color.r,objects[i].color.g,objects[i].color.b,objects[i].color.a));
+      
+      objects[i].vBuffer = gl.createBuffer();
+      gl.bindBuffer( gl.ARRAY_BUFFER, objects[i].vBuffer );
+      gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
+      
+      
+      objects[i].vPosition = gl.getAttribLocation( objects[i].program, "vPosition" );
+      gl.vertexAttribPointer(objects[i].vPosition, 4, gl.FLOAT, false, 0, 0 );
+      gl.enableVertexAttribArray(objects[i].vPosition );
+      
+      objects[i].thetaLoc = gl.getUniformLocation(objects[i].program, "theta");
+      gl.uniform3fv(objects[i].thetaLoc, vec3(objects[i].rotation.x,objects[i].rotation.y,objects[i].rotation.z));
+      objects[i].translateLoc = gl.getUniformLocation(objects[i].program, "translate");
+      gl.uniform3fv(objects[i].translateLoc, vec3(objects[i].location.x,objects[i].location.y,objects[i].location.z));
+      
+      gl.drawArrays(gl.TRIANGLES,0,(points).length);
+      gl.uniform4fv(objects[i].colorLoc,vec4(0.0,0.0,0.0,1.0));
+      gl.drawArrays(gl.LINE_LOOP,0,(points).length);
+   }
+}
+
+function colorCube(height){
+   quad( 1, 0, 3, 2,height );
+   quad( 2, 3, 7, 6,height );
+   quad( 3, 0, 4, 7,height );
+   quad( 6, 5, 1, 2,height );
+   quad( 4, 5, 6, 7,height );
+   quad( 5, 4, 0, 1,height );
+}
+function quad(a, b, c, d,height)
+{
+   var vertices = [
+                   vec4( -0.5*height, -0.5*height,  0.5*height, 1.0 ),
+                   vec4( -0.5*height,  0.5*height,  0.5*height, 1.0 ),
+                   vec4(  0.5*height,  0.5*height,  0.5*height, 1.0 ),
+                   vec4(  0.5*height, -0.5*height,  0.5*height, 1.0 ),
+                   vec4( -0.5*height, -0.5*height, -0.5*height, 1.0 ),
+                   vec4( -0.5*height,  0.5*height, -0.5*height, 1.0 ),
+                   vec4(  0.5*height,  0.5*height, -0.5*height, 1.0 ),
+                   vec4(  0.5*height, -0.5*height, -0.5*height, 1.0 )
+                   ];
+   //partition into triangles
+   
+   var indices = [ a, b, c, a, c, d ];
+   
+   for ( var i = 0; i < indices.length; ++i ) {
+      points.push( vertices[indices[i]] );
+   }
+}
+
+
 //Interactivity
 function updateType(e){
    updateObject(e);
@@ -340,19 +420,21 @@ function updateObject(){
    
    //objectList.options[currentObject].text = currentObject;
    objectList.options[currentObject].text = objects[currentObject].toString();
+   render();
 }
 function deleteObject(){
    console.log(objectList.val(),currentObject,objects);
    objects.splice(currentObject,1);
    objectList.element.remove(currentObject);
-//   if(currentObject==objects.length){
-//      currentObject--;
-//   }
-//   objectList.val(currentObject);
+   //   if(currentObject==objects.length){
+   //      currentObject--;
+   //   }
+   //   objectList.val(currentObject);
    if(objects[currentObject]==undefined){
       currentObject--;
    }
    console.log(objectList.val()==currentObject,objects);
+   render();
 }
 function scaleCanvas(){
    canvas.width = window.innerWidth;

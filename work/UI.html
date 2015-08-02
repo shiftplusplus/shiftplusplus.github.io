@@ -7,20 +7,26 @@
       <script id="vertex-shader" type="x-shader/x-vertex">
          
          attribute  vec4 vPosition;
-         attribute  vec4 vColor;
-         varying vec4 fColor;
+         //attribute  vec4 vColor;
+         //uniform vec4 fColor;
          
          uniform vec3 theta;
+         uniform vec3 translate;
+         
          
          void main()
          {
             // Compute the sines and cosines of theta for each of
             //   the three axes in one computation.
-            vec3 angles = radians( theta );
+                        vec3 angles = radians( theta );
             vec3 c = cos( angles );
             vec3 s = sin( angles );
+            mat4 translation = mat4(1.0,0.0,0.0,0.0,
+                                    0.0,1.0,0.0,0.0,
+                                    0.0,0.0,1.0,0.0,
+                                    translate.x,translate.y,translate.z,1.0);
             
-            // Remeber: matrices are column-major
+            // Remember: matrices are column-major
             mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
                            0.0,  c.x,  s.x, 0.0,
                            0.0, -s.x,  c.x, 0.0,
@@ -36,8 +42,9 @@
                            0.0,  0.0, 1.0, 0.0,
                            0.0,  0.0, 0.0, 1.0 );
             
-            fColor = vColor;
-            gl_Position = rz * ry * rx * vPosition; //TRS
+            //fColor = vColor;
+
+gl_Position = translation * rz*ry*rx * vPosition; //TRS
          }
       
       
@@ -47,7 +54,7 @@
          
          precision mediump float;
          
-         varying vec4 fColor;
+         uniform vec4 fColor;
          
          void
          main()
@@ -146,19 +153,19 @@
          </select><br />
          
          &emsp;Location:<br />
-         X<input type="range" id="locX" min="-10" max="10" step="0.01" value="0" /><input type="number" id="locX2" min="-10" max="10" step="0.01" value="0" /><br />
-         Y<input type="range" id="locY" min="-10" max="10" step="0.01" value="0" /><input type="number" id="locY2" min="-10" max="10" step="0.01" value="0" /><br />
-         Z<input type="range" id="locZ" min="-10" max="10" step="0.01" value="0" /><input type="number" id="locZ2" min="-10" max="10" step="0.01" value="0" /><br />
+         X<input type="range" id="locX" min="-1" max="1" step="0.01" value="0" /><input type="number" id="locX2" min="-1" max="1" step="0.01" value="0" /><br />
+         Y<input type="range" id="locY" min="-1" max="1" step="0.01" value="0" /><input type="number" id="locY2" min="-1" max="1" step="0.01" value="0" /><br />
+         Z<input type="range" id="locZ" min="-1" max="1" step="0.01" value="0" /><input type="number" id="locZ2" min="-1" max="1" step="0.01" value="0" /><br />
          &emsp;Rotation:<br />
          X<input type="range" id="rotX" min="0" max="360" step="0.01" value="0" /><input type="number" id="rotX2" min="0" max="360" step="0.01" value="0" /><br />
          Y<input type="range" id="rotY" min="0" max="360" step="0.01" value="0" /><input type="number" id="rotY2" min="0" max="360" step="0.01" value="0" /><br />
          Z<input type="range" id="rotZ" min="0" max="360" step="0.01" value="0" /><input type="number" id="rotZ2" min="0" max="360" step="0.01" value="0" /><br />
-         Radius:<input type="number" id="radius" class="options sphereOptions cylinderOptions" value="1" /><br />
-         Height:<input type="number" id="height" class="options cubeOptions cylinderOptions" value="1" /><br />
+         Radius:<input type="number" id="radius" class="options sphereOptions cylinderOptions" min="0.01" max="2" value="0.1" step="0.01"/><br />
+         Height:<input type="number" id="height" class="options cubeOptions cylinderOptions" min="0.01" max="2" value="0.1" step="0.01" /><br />
          &emsp;Color:<br />
-         R<input type="range" id="colR" min="0" max="1" step="0.01" value="1" /><input type="number" id="colR2" min="0" max="1" step="0.01" value="1" /><br />
-         G<input type="range" id="colG" min="0" max="1" step="0.01" value="1" /><input type="number" id="colG2" min="0" max="1" step="0.01" value="1" /><br />
-         B<input type="range" id="colB" min="0" max="1" step="0.01" value="1" /><input type="number" id="colB2" min="0" max="1" step="0.01" value="1" /><br />
+         R<input type="range" id="colR" min="0" max="1" step="0.01" value="0" /><input type="number" id="colR2" min="0" max="1" step="0.01" value="0" /><br />
+         G<input type="range" id="colG" min="0" max="1" step="0.01" value="0" /><input type="number" id="colG2" min="0" max="1" step="0.01" value="0" /><br />
+         B<input type="range" id="colB" min="0" max="1" step="0.01" value="0" /><input type="number" id="colB2" min="0" max="1" step="0.01" value="0" /><br />
          A<input type="range" id="colA" min="0" max="1" step="0.01" value="1" /><input type="number" id="colA2" min="0" max="1" step="0.01" value="1" /><br />
          </p>
          </div>
