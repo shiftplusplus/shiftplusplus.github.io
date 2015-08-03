@@ -173,16 +173,16 @@ function DrawObject(options){
    this.location.y=0;
    this.location.z=0;
    this.rotation ={};
-   this.rotation.x=0;
-   this.rotation.y=0;
-   this.rotation.z=0;
+   this.rotation.x=45;
+   this.rotation.y=45;
+   this.rotation.z=45;
    this.radius=1;
-   this.height=1;
+   this.height=0.1;
    this.color = {};
-   this.color.r = 0;
-   this.color.g =0;
-   this.color.b = 0;
-   this.color.a = 1;
+   this.color.r = 0.5;
+   this.color.g =0.5;
+   this.color.b = 0.5;
+   this.color.a = 0.5;
    
    if(options){
       if(options.type) this.type = options.type;
@@ -193,24 +193,22 @@ function DrawObject(options){
    }
    
    //each object must supply its own GL buffers
-   //   this.program = initShaders(gl,"vertex-shader","fragment-shader");
-   //   gl.useProgram(this.program);
-   //   this.cBuffer = gl.createBuffer();
-   //   this.vBuffer = gl.createBuffer();
-   //   this.sendColor = function(){
-   //      gl.useProgram(this.program);
-   //      gl.bindBuffer(gl.ARRAY_BUFFER,this.cBuffer);
-   //      gl.bufferData(gl.ARRAY_BUFFER,flatten([this.color.r,this.color.g,this.color.b,this.color.a]),gl.STATIC_DRAW);
-   //      this.vColor = gl.getAttribLocation(this.program,"vColor");
-   //      gl.vertexAttribPointer(this.vColor,4,gl.FLOAT,false,0,0);
-   //      gl.enableVertexAttribArray(this.vColor);
-   //   }
-   //   this.sendVertices = function(points){
-   //      gl.useProgram(this.program);
-   //      gl.bindBuffer(gl.ARRAY_BUFFER,this.vBuffer);
-   //      gl.bufferData(gl.ARRAY_BUFFER,flatten(points),gl.STATIC_DRAW);
-   //   }
-   //
+   this.program = initShaders( gl, "vertex-shader", "fragment-shader" );
+   this.colorLoc = gl.getUniformLocation(this.program,"fColor");
+   this.sendColor = function(){
+      gl.useProgram( this.program );
+      gl.uniform4fv(this.colorLoc,vec4(this.color.r,this.color.g,this.color.b,this.color.a));
+   }
+   this.vBuffer = gl.createBuffer();
+   this.vPosition = gl.getAttribLocation( this.program, "vPosition" );
+   this.sendVertices = function(points){
+      gl.useProgram( this.program );
+   gl.bindBuffer( gl.ARRAY_BUFFER, this.vBuffer );
+   gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
+   gl.vertexAttribPointer(this.vPosition, 4, gl.FLOAT, false, 0, 0 );
+   gl.enableVertexAttribArray(this.vPosition );
+   }
+   
    this.toString = function(){
       return this.type+"@("+this.location.x+","+this.location.y+","+this.location.z+"); orientation("+this.rotation.x+","+this.rotation.y+","+this.rotation.z+"); color("+this.color.r+","+this.color.g+","+this.color.b+","+this.color.a+")";
    }
@@ -295,20 +293,12 @@ function render(){
       }
       
       
-      objects[i].program = initShaders( gl, "vertex-shader", "fragment-shader" );
+      
       gl.useProgram( objects[i].program );
+      objects[i].sendColor();
       
-      objects[i].colorLoc = gl.getUniformLocation(objects[i].program,"fColor");
-      gl.uniform4fv(objects[i].colorLoc,vec4(objects[i].color.r,objects[i].color.g,objects[i].color.b,objects[i].color.a));
-      
-      objects[i].vBuffer = gl.createBuffer();
-      gl.bindBuffer( gl.ARRAY_BUFFER, objects[i].vBuffer );
-      gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
-      
-      
-      objects[i].vPosition = gl.getAttribLocation( objects[i].program, "vPosition" );
-      gl.vertexAttribPointer(objects[i].vPosition, 4, gl.FLOAT, false, 0, 0 );
-      gl.enableVertexAttribArray(objects[i].vPosition );
+      // also try for a sendVertices() and a sendOrient(). Also, if they could be made to test for changes and make no more calls than necessary?
+      objects[i].sendVertices(points);
       
       objects[i].thetaLoc = gl.getUniformLocation(objects[i].program, "theta");
       gl.uniform3fv(objects[i].thetaLoc, vec3(objects[i].rotation.x,objects[i].rotation.y,objects[i].rotation.z));
