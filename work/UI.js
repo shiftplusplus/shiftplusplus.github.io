@@ -116,12 +116,17 @@ function InputVar(id, change){
                this.v = x;
             }else{
                this.v = this.element.value;
+               if(this.element.type==checkbox){
+                  this.v = this.element.checked;
+               }
             }
             if(this.change != null){
                this.change(this);
             }
          }else{ //get
-            
+            if(this.element.type==checkbox){
+               this.v = this.element.checked;
+            }
             return this.v;
          }
       }
@@ -203,10 +208,16 @@ function DrawObject(options){
    this.vPosition = gl.getAttribLocation( this.program, "vPosition" );
    this.sendVertices = function(points){
       gl.useProgram( this.program );
-   gl.bindBuffer( gl.ARRAY_BUFFER, this.vBuffer );
-   gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
-   gl.vertexAttribPointer(this.vPosition, 4, gl.FLOAT, false, 0, 0 );
-   gl.enableVertexAttribArray(this.vPosition );
+      gl.bindBuffer( gl.ARRAY_BUFFER, this.vBuffer );
+      gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
+      gl.vertexAttribPointer(this.vPosition, 4, gl.FLOAT, false, 0, 0 );
+      gl.enableVertexAttribArray(this.vPosition );
+   }
+   this.sendOptions = function(){
+      this.thetaLoc = gl.getUniformLocation(this.program, "theta");
+      gl.uniform3fv(this.thetaLoc, vec3(this.rotation.x,this.rotation.y,this.rotation.z));
+      this.translateLoc = gl.getUniformLocation(this.program, "translate");
+      gl.uniform3fv(this.translateLoc, vec3(this.location.x,this.location.y,this.location.z));
    }
    
    this.toString = function(){
@@ -214,6 +225,13 @@ function DrawObject(options){
    }
    return this;
 }
+
+
+Array.prototype.extend = function (other_array) {
+   /* you should include a test to check whether other_array really is an array */
+   other_array.forEach(function(v) {this.push(v)}, this);
+}
+
 
 //Globals
 var canvas;
@@ -234,6 +252,8 @@ var colG;
 var colB;
 var colA;
 var objectList;
+var perspective;
+var tessellations = 2;
 
 //Init
 window.onload = function init(){
@@ -263,6 +283,9 @@ window.onload = function init(){
    colB = new LinkedVar("colB","colB2",updateObject);
    colA = new LinkedVar("colA","colA2",updateObject);
    objectList = new InputVar("objects",switchObject);
+   perspective = new InputVar("perspective",render);
+   perspective.val(false);
+   tessellation = new InputVar("res",render);
    
    document.getElementById("newObject").onclick= newObject;
    document.getElementById("delObject").onclick= deleteObject;
@@ -278,17 +301,108 @@ function render(){
    
    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
    for(var i=0;i<objects.length;i++){
-      
+      tessellations = tessellation.val();
       //Generate geometry
       points = [];
       switch(objects[i].type){
          case "cube":
-                        colorCube(objects[i].height);
-//            points= JSON.parse("[[-0.5,0.5,0.5,1],[-0.5,-0.5,0.5,1],[0.5,-0.5,0.5,1],[-0.5,0.5,0.5,1],[0.5,-0.5,0.5,1],[0.5,0.5,0.5,1],[0.5,0.5,0.5,1],[0.5,-0.5,0.5,1],[0.5,-0.5,-0.5,1],[0.5,0.5,0.5,1],[0.5,-0.5,-0.5,1],[0.5,0.5,-0.5,1],[0.5,-0.5,0.5,1],[-0.5,-0.5,0.5,1],[-0.5,-0.5,-0.5,1],[0.5,-0.5,0.5,1],[-0.5,-0.5,-0.5,1],[0.5,-0.5,-0.5,1],[0.5,0.5,-0.5,1],[-0.5,0.5,-0.5,1],[-0.5,0.5,0.5,1],[0.5,0.5,-0.5,1],[-0.5,0.5,0.5,1],[0.5,0.5,0.5,1],[-0.5,-0.5,-0.5,1],[-0.5,0.5,-0.5,1],[0.5,0.5,-0.5,1],[-0.5,-0.5,-0.5,1],[0.5,0.5,-0.5,1],[0.5,-0.5,-0.5,1],[-0.5,0.5,-0.5,1],[-0.5,-0.5,-0.5,1],[-0.5,-0.5,0.5,1],[-0.5,0.5,-0.5,1],[-0.5,-0.5,0.5,1],[-0.5,0.5,0.5,1]]")
+            colorCube(objects[i].height);
+            break;
+         case "cone":
+            //make a circle and a dot.
             break;
          case "sphere":
+            //tessellate and normalize some a solid.
+            r = objects[i].radius;
+            console.log(r);
+            vertices1 = [
+                         vec4( 0,  r,  0, 1),
+                         vec4( 0,  -r,  0, 1)
+                         ];
+            vertices2 = [
+                         vec4( -r,  0,  0, 1),
+                         vec4( 0,  0,  r, 1),
+                         vec4( r,  0,  0, 1),
+                         vec4( 0,  0, -r, 1),
+                         ];
+            for(var j=0;j<vertices1.length;j++){
+               for(var k=0;k<vertices2.length;k++){
+                  endpointIndex = k+1;
+                  if(endpointIndex == vertices2.length){
+                     endpointIndex = 0;
+                  }
+                  tessellate (vertices1[j],vertices2[k],vertices2[endpointIndex], tessellations);
+               }
+            }
+            var npoints=[];
+            for(var j=0;j<points.length;j++){
+               npoints.push(norm(points[j],r));
+            }
+            points=npoints;
             break;
          case "cylinder":
+            //two circles, drum lacing.
+            h=objects[i].height/2;
+            r = Number(objects[i].radius);
+            vertices = [
+                        vec4(-r,h,0,1),
+                        vec4(0,h,r,1),
+                        vec4(0,-h,r,1),
+                        vec4(r,h,0,1),
+                        vec4(r,-h,0,1),
+                        vec4(0,h,-r,1),
+                        vec4(0,-h,-r,1),
+                        vec4(-r,-h,0,1),
+                        ]
+            for(var j=0;j<vertices.length;j++){
+               midpointIndex = j+1;
+               if(midpointIndex == vertices.length){
+                  midpointIndex = 0;
+               }
+               endpointIndex=midpointIndex+1;
+               if(endpointIndex==vertices.length){
+                  endpointIndex=0;
+               }
+               tessellate (vertices[j],vertices[midpointIndex],vertices[endpointIndex], tessellations);
+               if(endpointIndex == 1){
+                  endpointIndex=5;
+                  tessellate (vertices[j],vertices[midpointIndex],vertices[endpointIndex], tessellations);
+                  tessellate (vertices[0],vertices[7],vertices[2], tessellations);
+               }
+               //                  points=vertices;
+            }
+            var npoints=[];
+            for(var j=0;j<points.length;j++){
+               p=norm([points[j][0],points[j][2]],r);
+               p[2]=p[1];
+               p[1]=points[j][1]; //reset y
+               npoints.push(p);
+            }
+            //            points=npoints;
+            vertices2=[];
+            points=[];
+            for(var k=0;k<vertices.length;k++){
+               vertices2.push(vec2(vertices[k][0],vertices[k][2]));
+            }
+            for(var j=0;j<vertices2.length;j++){
+               midpointIndex = j+1;
+               if(midpointIndex == vertices2.length){
+                  midpointIndex = 0;
+               }
+               tessellate (vec2(0,0),vertices2[j],vertices2[midpointIndex], tessellations);
+            }
+            for(var m=0;m<points.length;m++){
+               points[m] = norm(points[m],r);
+            }
+            for(var n=-1;n<2;n=n+2){
+               for(var m=0;m<points.length;m++){
+                  //                  console.log(" "+points[m]);
+                  npoints.push(vec4(points[m][0],n*h,points[m][1],1));
+                  //                  console.log(points[m])
+               }
+            }
+            //            points.extend(npoints);
+            points=npoints;
             break;
       }
       
@@ -296,20 +410,66 @@ function render(){
       
       gl.useProgram( objects[i].program );
       objects[i].sendColor();
-      
-      // also try for a sendVertices() and a sendOrient(). Also, if they could be made to test for changes and make no more calls than necessary?
       objects[i].sendVertices(points);
+      objects[i].sendOptions();
+      var ortho=0;
+      if(perspective.val()){
+         console.log("perspective: ", perspective.val());
+         ortho=2;
+      }
+      var orthoLoc = gl.getUniformLocation(objects[i].program,"ortho");
+      gl.uniform1f(orthoLoc,ortho);
       
-      objects[i].thetaLoc = gl.getUniformLocation(objects[i].program, "theta");
-      gl.uniform3fv(objects[i].thetaLoc, vec3(objects[i].rotation.x,objects[i].rotation.y,objects[i].rotation.z));
-      objects[i].translateLoc = gl.getUniformLocation(objects[i].program, "translate");
-      gl.uniform3fv(objects[i].translateLoc, vec3(objects[i].location.x,objects[i].location.y,objects[i].location.z));
-      
-      gl.drawArrays(gl.TRIANGLES,0,(points).length);
+      //            console.log(points,points.length);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,(points).length);
       gl.uniform4fv(objects[i].colorLoc,vec4(0.0,0.0,0.0,1.0));
       gl.drawArrays(gl.LINE_LOOP,0,(points).length);
    }
 }
+
+function tessellate(a,b,c,count){
+   //check for end of recursion
+   if(count==0) {
+      
+      points.push(a,b,c);
+   }
+   else {
+      //bisect sides
+      var ab = mix(a,b,0.5);
+      var ac = mix(a,c,0.5);
+      var bc = mix(b,c,0.5);
+      // count--;
+      //new triangles
+      tessellate(c,ac,bc,count-1,radius);
+      tessellate(a,ab,ac,count-1,radius);
+      tessellate(ab,bc,ac,count-1,radius);
+      tessellate(b,bc,ab,count-1,radius);
+      
+   }
+}
+
+function norm(a,radius){
+   if(radius == undefined || radius <=0){
+      radius = 0.001;
+   }
+   if(a[2]==undefined){
+      a[2]=0;
+   }
+   al = Math.sqrt(Math.pow(a[0],2)+Math.pow(a[1],2)+Math.pow(a[2],2));
+   if(al!=0){
+      a2 = vec4(a[0]/al*radius,a[1]/al*radius,a[2]/al*radius,1);
+   }else{
+      a2=a;
+   }
+   newl = Math.sqrt(Math.pow(a2[0],2)+Math.pow(a2[1],2)+Math.pow(a2[2],2));
+   if(isNaN(newl)){
+      console.log("uh-oh");
+   }
+   //   console.log(a,al,a2,newl);
+   return a2;
+   
+}
+
 
 function colorCube(height){
    quad( 1, 0, 3, 2,height );
@@ -319,8 +479,7 @@ function colorCube(height){
    quad( 4, 5, 6, 7,height );
    quad( 5, 4, 0, 1,height );
 }
-function quad(a, b, c, d,height)
-{
+function quad(a, b, c, d,height) {
    var vertices = [
                    vec4( -0.5*height, -0.5*height,  0.5*height, 1.0 ),
                    vec4( -0.5*height,  0.5*height,  0.5*height, 1.0 ),
