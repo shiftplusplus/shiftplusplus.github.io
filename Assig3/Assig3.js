@@ -358,7 +358,6 @@ function render(){
          case "sphere":
             //tessellate and normalize some a solid.
             r = objects[i].radius;
-            console.log(r);
             vertices1 = [
                          vec4( 0,  r,  0, 1),
                          vec4( 0,  -r,  0, 1)
@@ -577,6 +576,7 @@ function switchObject(e){
    
    
 }
+
 function newObject(){
    options ={};
    options.type=type.val();
@@ -595,7 +595,7 @@ function newObject(){
    options.color.g = colG.val();
    options.color.b = colB.val();
    options.color.a = colA.val();
-   console.log(options);
+//   console.log(options);
    var x = new DrawObject(options);
    currentObject=objects.length;//old length = new index
    objects.push(x);
@@ -605,6 +605,7 @@ function newObject(){
    updateObject();
    
 }
+
 function updateObject(){
    objects[currentObject].type=type.val();
    objects[currentObject].location.x=locX.val();
@@ -624,8 +625,9 @@ function updateObject(){
    objectList.options[currentObject].text = objects[currentObject].toString();
    render();
 }
+
 function deleteObject(){
-   console.log(objectList.val(),currentObject,objects);
+//   console.log(objectList.val(),currentObject,objects);
    objects.splice(currentObject,1);
    objectList.element.remove(currentObject);
    //   if(currentObject==objects.length){
@@ -635,7 +637,10 @@ function deleteObject(){
    if(objects[currentObject]==undefined){
       currentObject--;
    }
-   console.log(objectList.val()==currentObject,objects);
+   for(var i=0;i<objectList.element.options.length;i++){
+      objectList.element.options[i].value=i;
+   }
+//   console.log(objectList.val()==currentObject,objects);
    render();
 }
 function scaleCanvas(){
