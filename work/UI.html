@@ -133,6 +133,27 @@
             <h1>Controls<button onclick="$('#controls').toggle();">hide/show</button></h1>
          </header>
          <div id="controls">
+            
+            <hr />
+            
+            <p id="globalOptions">
+            Camera location and rotation<br />
+            <label for="perspective">Perspective</label>
+               <input type="checkbox" id="perspective" checked="checked" disabled="disabled" style="visibility:none"/><br />
+            Near: <input type="range" id="near" min=".01" max="10" value="1" step="0.1" /><br />
+            Far: <input type="range" id="far" min="3" max="60" value="10" ste="0.1" /><br />
+            Radius: <input type="range" id="rad" min="0.05" max="20" value="3" step="0.05"/><br />
+            Longitude (&theta;): <input type="range" id="theta" min="-360" max="360" value="0" step="1"/><br />
+            Latitude (&phi;) <input type="range" id="phi" min="-360" max="360" step="1" value="0" /><br />
+            FOV: <input type="range" id="fovy" min="10" max="200" value="100" step="1"/><br />
+            Aspect ratio: <input type="range" id="aspect" min="0.5" max="2" value="1" step="0.1" /><br />
+            <hr />
+<!--            Lighting options<br />-->
+            Resolution (tessellate curves)<br />
+            <input type="range" id="res" min="0" max="5" step="1" value="3" />
+            </p>
+            </p>
+            <hr>
             <p class="menu">
             <select id="objects" size="4">
                <!--               <option value="0" selected>Object 0</option>-->
@@ -142,26 +163,6 @@
             <input type="button" id="delObject" value="-" />
             </p>
             <p>
-            <hr />
-            
-            <p id="globalOptions">
-            Camera location and rotation<br />
-            <label for="perspective">Perspective</label>
-               <input type="checkbox" id="perspective" /><br />
-            Near: <input type="range" id="near" min=".01" max="10" value="1" step="0.1" /><br />
-            Far: <input type="range" id="far" min="3" max="30" value="10" ste="0.1" /><br />
-            Radius: <input type="range" id="rad" min="0.05" max="20" value="3" step="0.05"/><br />
-            Longitude (&theta;): <input type="range" id="theta" min="-360" max="360" value="0" step="1"/><br />
-            Latitude (&phi;) <input type="range" id="phi" min="-360" max="360" step="1" value="0" /><br />
-            FOV: <input type="range" id="fovy" min="10" max="200" value="100" step="1"/><br />
-            Aspect ratio: <input type="range" id="aspect" min="0.5" max="2" value="1" step="0.1" /><br />
-            <hr />
-            Lighting options<br />
-            Resolution (tessellate curves)<br />
-            <input type="range" id="res" min="0" max="5" step="1" value="3" />
-            </p>
-            </p>
-            <hr>
             <p id="objectOptions">
             <select id="objectType">
                <option value="sphere">Sphere</option>

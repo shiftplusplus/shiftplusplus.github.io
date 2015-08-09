@@ -332,6 +332,28 @@ function render(){
             break;
          case "cone":
             //make a circle and a dot.
+            r = Number(objects[i].radius);
+            h = Number(objects[i].height);
+            vertices = [
+                        vec4(-r,0,0,1),
+                        vec4(0,0,r,1),
+                        vec4(r,0,0,1),
+                        vec4(0,0,-r,1),
+                        ]
+            for(j=0;j<vertices.length;j++){
+               endpointIndex = j+1;
+               if(endpointIndex == vertices.length){
+                  endpointIndex = 0;
+               }
+               tessellate(vec4(0,h,0,1),vertices[j],vertices[endpointIndex],tessellations);
+            }
+            for(var k=0;k<points.length;k++){
+               if(points[k][1]!=h){
+//                  console.log(k,points[k]);
+                  points[k][1]=0;
+                  points[k] = norm(points[k],r);
+               }
+            }
             break;
          case "sphere":
             //tessellate and normalize some a solid.
