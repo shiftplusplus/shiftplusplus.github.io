@@ -252,8 +252,23 @@ var colG;
 var colB;
 var colA;
 var objectList;
-var perspective;
+var perspectiveToggle;
 var tessellations = 2;
+
+
+var near;// = 0.3;
+var far;//= 10.0;
+var rad;// = 3.0;
+var theta;// = 0.0;
+var phi;// = 60.0;
+var dr = 5.0*Math.PI/180.0;
+var fovy;// = 120;
+var aspect;// = 1;
+var modelViewMatrix, projectionMatrix;
+var modelViewMatrixLoc, projectionMatrixLoc;
+var eye;
+const at = vec3(0.0, 0.0, 0.0);
+const up = vec3(0.0, 1.0, 0.0);
 
 //Init
 window.onload = function init(){
@@ -283,9 +298,16 @@ window.onload = function init(){
    colB = new LinkedVar("colB","colB2",updateObject);
    colA = new LinkedVar("colA","colA2",updateObject);
    objectList = new InputVar("objects",switchObject);
-   perspective = new InputVar("perspective",render);
-   perspective.val(false);
+   perspectiveToggle = new InputVar("perspective",render);
+   perspectiveToggle.val(false);
    tessellation = new InputVar("res",render);
+   near = new InputVar("near",render);
+   far = new InputVar("far",render);
+   rad = new InputVar("rad",render);
+   theta = new InputVar("theta",render);
+   phi = new InputVar("phi",render);
+   fovy = new InputVar("fovy",render);
+   aspect = new InputVar("aspect",render);
    
    document.getElementById("newObject").onclick= newObject;
    document.getElementById("delObject").onclick= deleteObject;
@@ -412,14 +434,23 @@ function render(){
       objects[i].sendColor();
       objects[i].sendVertices(points);
       objects[i].sendOptions();
-      var ortho=0;
-      if(perspective.val()){
-         console.log("perspective: ", perspective.val());
-         ortho=2;
-      }
-      var orthoLoc = gl.getUniformLocation(objects[i].program,"ortho");
-      gl.uniform1f(orthoLoc,ortho);
       
+      modelViewMatrixLoc = gl.getUniformLocation( objects[i].program, "modelViewMatrix" );
+      projectionMatrixLoc = gl.getUniformLocation( objects[i].program, "projectionMatrix" );
+      eye = vec3(rad.val()*Math.sin(radians(theta.val()))*Math.cos(radians(phi.val())),
+                 rad.val()*Math.sin(radians(theta.val()))*Math.sin(radians(phi.val())), rad.val()*Math.cos(radians(theta.val())));
+      modelViewMatrix = lookAt(eye, at , up);
+      
+      
+
+      if(perspectiveToggle.val()){
+         projectionMatrix = perspective(fovy.val(), aspect.val(), near.val(), far.val());
+      }else{
+         projectionMatrix = ortho(-5,5,-5,5,5,-5);
+      }
+      
+      gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+      gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
       //            console.log(points,points.length);
       gl.drawArrays(gl.TRIANGLE_STRIP,0,(points).length);
       gl.uniform4fv(objects[i].colorLoc,vec4(0.0,0.0,0.0,1.0));
