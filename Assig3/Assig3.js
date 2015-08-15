@@ -188,6 +188,8 @@ function DrawObject(options){
    this.color.g =0.5;
    this.color.b = 0.5;
    this.color.a = 0.5;
+   this.points = [];
+   this.pointsCurrent=false;
    
    if(options){
       if(options.type) this.type = options.type;
@@ -198,6 +200,140 @@ function DrawObject(options){
    }
    
    //each object must supply its own GL buffers
+   
+   this.calculatePoints = function(){
+      if(this.pointsCurrent){
+         return this.points;
+      }
+      
+      points = [];
+      switch(this.type){
+         case "cube":
+            colorCube(this.height);
+            break;
+         case "cone":
+            //make a circle and a dot.
+            r = Number(this.radius);
+            h = Number(this.height);
+            vertices = [
+                        vec4(-r,0,0,1),
+                        vec4(0,0,r,1),
+                        vec4(r,0,0,1),
+                        vec4(0,0,-r,1),
+                        ]
+            for(j=0;j<vertices.length;j++){
+               endpointIndex = j+1;
+               if(endpointIndex == vertices.length){
+                  endpointIndex = 0;
+               }
+               tessellate(vec4(0,h,0,1),vertices[j],vertices[endpointIndex],tessellations);
+            }
+            for(var k=0;k<points.length;k++){
+               if(points[k][1]!=h){
+                  //                  console.log(k,points[k]);
+                  points[k][1]=0;
+                  points[k] = norm(points[k],r);
+               }
+            }
+            break;
+         case "sphere":
+            //tessellate and normalize some a solid.
+            r = this.radius;
+            vertices1 = [
+                         vec4( 0,  r,  0, 1),
+                         vec4( 0,  -r,  0, 1)
+                         ];
+            vertices2 = [
+                         vec4( -r,  0,  0, 1),
+                         vec4( 0,  0,  r, 1),
+                         vec4( r,  0,  0, 1),
+                         vec4( 0,  0, -r, 1),
+                         ];
+            for(var j=0;j<vertices1.length;j++){
+               for(var k=0;k<vertices2.length;k++){
+                  endpointIndex = k+1;
+                  if(endpointIndex == vertices2.length){
+                     endpointIndex = 0;
+                  }
+                  tessellate (vertices1[j],vertices2[k],vertices2[endpointIndex], tessellations);
+               }
+            }
+            var npoints=[];
+            for(var j=0;j<points.length;j++){
+               npoints.push(norm(points[j],r));
+            }
+            points=npoints;
+            break;
+         case "cylinder":
+            //two circles, drum lacing.
+            h=this.height/2;
+            r = Number(this.radius);
+            vertices = [
+                        vec4(-r,h,0,1),
+                        vec4(0,h,r,1),
+                        vec4(0,-h,r,1),
+                        vec4(r,h,0,1),
+                        vec4(r,-h,0,1),
+                        vec4(0,h,-r,1),
+                        vec4(0,-h,-r,1),
+                        vec4(-r,-h,0,1),
+                        ]
+            for(var j=0;j<vertices.length;j++){
+               midpointIndex = j+1;
+               if(midpointIndex == vertices.length){
+                  midpointIndex = 0;
+               }
+               endpointIndex=midpointIndex+1;
+               if(endpointIndex==vertices.length){
+                  endpointIndex=0;
+               }
+               tessellate (vertices[j],vertices[midpointIndex],vertices[endpointIndex], tessellations);
+               if(endpointIndex == 1){
+                  endpointIndex=5;
+                  tessellate (vertices[j],vertices[midpointIndex],vertices[endpointIndex], tessellations);
+                  tessellate (vertices[0],vertices[7],vertices[2], tessellations);
+               }
+               //                  points=vertices;
+            }
+            var npoints=[];
+            for(var j=0;j<points.length;j++){
+               p=norm([points[j][0],points[j][2]],r);
+               p[2]=p[1];
+               p[1]=points[j][1]; //reset y
+               npoints.push(p);
+            }
+            //            points=npoints;
+            vertices2=[];
+            points=[];
+            for(var k=0;k<vertices.length;k++){
+               vertices2.push(vec2(vertices[k][0],vertices[k][2]));
+            }
+            for(var j=0;j<vertices2.length;j++){
+               midpointIndex = j+1;
+               if(midpointIndex == vertices2.length){
+                  midpointIndex = 0;
+               }
+               tessellate (vec2(0,0),vertices2[j],vertices2[midpointIndex], tessellations);
+            }
+            for(var m=0;m<points.length;m++){
+               points[m] = norm(points[m],r);
+            }
+            for(var n=-1;n<2;n=n+2){
+               for(var m=0;m<points.length;m++){
+                  //                  console.log(" "+points[m]);
+                  npoints.push(vec4(points[m][0],n*h,points[m][1],1));
+                  //                  console.log(points[m])
+               }
+            }
+            //            points.extend(npoints);
+            points=npoints;
+            break;
+      }
+      this.points = points;
+      this.pointsCurrent=true;
+      return points;
+   }
+   
    this.program = initShaders( gl, "vertex-shader", "fragment-shader" );
    this.colorLoc = gl.getUniformLocation(this.program,"fColor");
    this.sendColor = function(){
@@ -300,7 +436,7 @@ window.onload = function init(){
    objectList = new InputVar("objects",switchObject);
    perspectiveToggle = new InputVar("perspective",render);
    perspectiveToggle.val(false);
-   tessellation = new InputVar("res",render);
+   tessellation = new InputVar("res",updateTessellation);
    near = new InputVar("near",render);
    far = new InputVar("far",render);
    rad = new InputVar("rad",render);
@@ -318,6 +454,16 @@ window.onload = function init(){
    
 }
 //Core functions
+
+function updateTessellation(e){
+   for(var i=0;i<objects.length;i++){
+      if(objects[i].type=="sphere"||objects[i].type=="cone" || objects[i].type=="cylinder"){
+         objects[i].pointsCurrent=false;
+      }
+   }
+   render();
+}
+
 var points = []
 function render(){
    
@@ -325,135 +471,13 @@ function render(){
    for(var i=0;i<objects.length;i++){
       tessellations = tessellation.val();
       //Generate geometry
-      points = [];
-      switch(objects[i].type){
-         case "cube":
-            colorCube(objects[i].height);
-            break;
-         case "cone":
-            //make a circle and a dot.
-            r = Number(objects[i].radius);
-            h = Number(objects[i].height);
-            vertices = [
-                        vec4(-r,0,0,1),
-                        vec4(0,0,r,1),
-                        vec4(r,0,0,1),
-                        vec4(0,0,-r,1),
-                        ]
-            for(j=0;j<vertices.length;j++){
-               endpointIndex = j+1;
-               if(endpointIndex == vertices.length){
-                  endpointIndex = 0;
-               }
-               tessellate(vec4(0,h,0,1),vertices[j],vertices[endpointIndex],tessellations);
-            }
-            for(var k=0;k<points.length;k++){
-               if(points[k][1]!=h){
-//                  console.log(k,points[k]);
-                  points[k][1]=0;
-                  points[k] = norm(points[k],r);
-               }
-            }
-            break;
-         case "sphere":
-            //tessellate and normalize some a solid.
-            r = objects[i].radius;
-            vertices1 = [
-                         vec4( 0,  r,  0, 1),
-                         vec4( 0,  -r,  0, 1)
-                         ];
-            vertices2 = [
-                         vec4( -r,  0,  0, 1),
-                         vec4( 0,  0,  r, 1),
-                         vec4( r,  0,  0, 1),
-                         vec4( 0,  0, -r, 1),
-                         ];
-            for(var j=0;j<vertices1.length;j++){
-               for(var k=0;k<vertices2.length;k++){
-                  endpointIndex = k+1;
-                  if(endpointIndex == vertices2.length){
-                     endpointIndex = 0;
-                  }
-                  tessellate (vertices1[j],vertices2[k],vertices2[endpointIndex], tessellations);
-               }
-            }
-            var npoints=[];
-            for(var j=0;j<points.length;j++){
-               npoints.push(norm(points[j],r));
-            }
-            points=npoints;
-            break;
-         case "cylinder":
-            //two circles, drum lacing.
-            h=objects[i].height/2;
-            r = Number(objects[i].radius);
-            vertices = [
-                        vec4(-r,h,0,1),
-                        vec4(0,h,r,1),
-                        vec4(0,-h,r,1),
-                        vec4(r,h,0,1),
-                        vec4(r,-h,0,1),
-                        vec4(0,h,-r,1),
-                        vec4(0,-h,-r,1),
-                        vec4(-r,-h,0,1),
-                        ]
-            for(var j=0;j<vertices.length;j++){
-               midpointIndex = j+1;
-               if(midpointIndex == vertices.length){
-                  midpointIndex = 0;
-               }
-               endpointIndex=midpointIndex+1;
-               if(endpointIndex==vertices.length){
-                  endpointIndex=0;
-               }
-               tessellate (vertices[j],vertices[midpointIndex],vertices[endpointIndex], tessellations);
-               if(endpointIndex == 1){
-                  endpointIndex=5;
-                  tessellate (vertices[j],vertices[midpointIndex],vertices[endpointIndex], tessellations);
-                  tessellate (vertices[0],vertices[7],vertices[2], tessellations);
-               }
-               //                  points=vertices;
-            }
-            var npoints=[];
-            for(var j=0;j<points.length;j++){
-               p=norm([points[j][0],points[j][2]],r);
-               p[2]=p[1];
-               p[1]=points[j][1]; //reset y
-               npoints.push(p);
-            }
-            //            points=npoints;
-            vertices2=[];
-            points=[];
-            for(var k=0;k<vertices.length;k++){
-               vertices2.push(vec2(vertices[k][0],vertices[k][2]));
-            }
-            for(var j=0;j<vertices2.length;j++){
-               midpointIndex = j+1;
-               if(midpointIndex == vertices2.length){
-                  midpointIndex = 0;
-               }
-               tessellate (vec2(0,0),vertices2[j],vertices2[midpointIndex], tessellations);
-            }
-            for(var m=0;m<points.length;m++){
-               points[m] = norm(points[m],r);
-            }
-            for(var n=-1;n<2;n=n+2){
-               for(var m=0;m<points.length;m++){
-                  //                  console.log(" "+points[m]);
-                  npoints.push(vec4(points[m][0],n*h,points[m][1],1));
-                  //                  console.log(points[m])
-               }
-            }
-            //            points.extend(npoints);
-            points=npoints;
-            break;
-      }
       
+      points = objects[i].calculatePoints();
       
       
       gl.useProgram( objects[i].program );
       objects[i].sendColor();
-      objects[i].sendVertices(points);
+      objects[i].sendVertices(objects[i].points);
       objects[i].sendOptions();
       
       modelViewMatrixLoc = gl.getUniformLocation( objects[i].program, "modelViewMatrix" );
@@ -463,7 +487,7 @@ function render(){
       modelViewMatrix = lookAt(eye, at , up);
       
       
-
+      
       if(perspectiveToggle.val()){
          projectionMatrix = perspective(fovy.val(), aspect.val(), near.val(), far.val());
       }else{
@@ -595,7 +619,7 @@ function newObject(){
    options.color.g = colG.val();
    options.color.b = colB.val();
    options.color.a = colA.val();
-//   console.log(options);
+   //   console.log(options);
    var x = new DrawObject(options);
    currentObject=objects.length;//old length = new index
    objects.push(x);
@@ -620,14 +644,14 @@ function updateObject(){
    objects[currentObject].color.g = colG.val();
    objects[currentObject].color.b = colB.val();
    objects[currentObject].color.a = colA.val();
-   
+   objects[currentObject].pointsCurrent=false;
    //objectList.options[currentObject].text = currentObject;
    objectList.options[currentObject].text = objects[currentObject].toString();
    render();
 }
 
 function deleteObject(){
-//   console.log(objectList.val(),currentObject,objects);
+   //   console.log(objectList.val(),currentObject,objects);
    objects.splice(currentObject,1);
    objectList.element.remove(currentObject);
    //   if(currentObject==objects.length){
@@ -640,7 +664,7 @@ function deleteObject(){
    for(var i=0;i<objectList.element.options.length;i++){
       objectList.element.options[i].value=i;
    }
-//   console.log(objectList.val()==currentObject,objects);
+   //   console.log(objectList.val()==currentObject,objects);
    render();
 }
 function scaleCanvas(){
