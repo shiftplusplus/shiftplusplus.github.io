@@ -158,11 +158,11 @@
          <div id="controls">
             
             <hr />
-            
+            Camera location and rotation <button onclick="$('#globalOptions').toggle();">hide/show</button><br />
             <p id="globalOptions">
-            Camera location and rotation<br />
+            
             <label for="perspective">Perspective</label>
-               <input type="checkbox" id="perspective" checked="checked" style="visibility:none" /><br />
+            <input type="checkbox" id="perspective" checked="checked" style="visibility:none" /><br />
             Near: <input type="range" id="near" min=".01" max="10" value="1" step="0.1" /><br />
             Far: <input type="range" id="far" min="3" max="60" value="10" ste="0.1" /><br />
             Radius: <input type="range" id="rad" min="0.05" max="20" value="3" step="0.05"/><br />
@@ -171,10 +171,9 @@
             FOV: <input type="range" id="fovy" min="10" max="200" value="100" step="1"/><br />
             Aspect ratio: <input type="range" id="aspect" min="0.5" max="2" value="1" step="0.1" /><br />
             <hr />
-<!--            Lighting options<br />-->
+            <!--            Lighting options<br />-->
             Resolution (tessellate curves)<br />
             <input type="range" id="res" min="0" max="5" step="1" value="3" />
-            </p>
             </p>
             <hr>
             <p class="menu">
@@ -186,6 +185,7 @@
             <input type="button" id="delObject" value="-" />
             </p>
             <p>
+            Adjust object <button onclick="$('#objectOptions').toggle();">hide/show</button>
             <p id="objectOptions">
             <select id="objectType">
                <option value="sphere">Sphere</option>
@@ -208,7 +208,7 @@
             R<input type="range" id="colR" min="0" max="1" step="0.01" value="0.5" /><input type="number" id="colR2" min="0" max="1" step="0.01" value="0.5" /><br />
             G<input type="range" id="colG" min="0" max="1" step="0.01" value="0.5" /><input type="number" id="colG2" min="0" max="1" step="0.01" value="0.5" /><br />
             B<input type="range" id="colB" min="0" max="1" step="0.01" value="0.5" /><input type="number" id="colB2" min="0" max="1" step="0.01" value="0.5" /><br />
-            A<input type="range" id="colA" min="0" max="1" step="0.01" value="0.5" /><input type="number" id="colA2" min="0" max="1" step="0.01" value="0.5" /><br />
+            Shininess<input type="range" id="shininess" min="0" max="300" step="10" value="50" /><input type="number" id="shininess2" min="0" max="300" step="1" value="50" /><br />
             </p>
          </div>
       </article>

@@ -187,9 +187,13 @@ function DrawObject(options){
    this.color.r = 0.5;
    this.color.g =0.5;
    this.color.b = 0.5;
-   this.color.a = 0.5;
+   this.materialShininess = 20.0;
+   this.materialAmbient;
+   this.materialDiffuse;
+   this.materialSpecular;
    this.points = [];
    this.pointsCurrent=false;
+   
    
    if(options){
       if(options.type) this.type = options.type;
@@ -361,15 +365,14 @@ function DrawObject(options){
    this.program = initShaders( gl, "vertex-shader", "fragment-shader" );
 //   this.colorLoc = gl.getUniformLocation(this.program,"fColor");
    
-   this.materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
-   this.materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0 );
-   this.materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
-   this.materialShininess = 20.0;
+
    
    
    this.sendColor = function(){
-      gl.useProgram( this.program );
-      gl.uniform4fv(this.colorLoc,vec4(this.color.r,this.color.g,this.color.b,this.color.a));
+      ambientLight = Math.min(objects.length*0.5,3);
+      this.materialAmbient = vec4(this.color.r*ambientLight,this.color.g*ambientLight,this.color.b*ambientLight,1.0);
+      this.materialDiffuse = vec4(this.color.r,this.color.g,this.color.b,1.0);
+      this.materialSpecular = vec4(this.color.r*2,this.color.g*2,this.color.b*2,1.0);
    }
    this.vBuffer = gl.createBuffer();
    this.vPosition = gl.getAttribLocation( this.program, "vPosition" );
@@ -409,7 +412,7 @@ function DrawObject(options){
    }
    
    this.toString = function(){
-      return this.type+"@("+this.location.x+","+this.location.y+","+this.location.z+"); orientation("+this.rotation.x+","+this.rotation.y+","+this.rotation.z+"); color("+this.color.r+","+this.color.g+","+this.color.b+","+this.color.a+")";
+      return this.type+"@("+this.location.x+","+this.location.y+","+this.location.z+"); orientation("+this.rotation.x+","+this.rotation.y+","+this.rotation.z+"); color("+this.color.r+","+this.color.g+","+this.color.b+",)shininess"+this.materialShininess+")";
    }
    return this;
 }
@@ -446,7 +449,7 @@ var height;
 var colR;
 var colG;
 var colB;
-var colA;
+var shininess;
 var objectList;
 var perspectiveToggle;
 var tessellations = 2;
@@ -493,7 +496,7 @@ window.onload = function init(){
    colR = new LinkedVar("colR","colR2",updateObject);
    colG = new LinkedVar("colG","colG2",updateObject);
    colB = new LinkedVar("colB","colB2",updateObject);
-   colA = new LinkedVar("colA","colA2",updateObject);
+   shininess = new LinkedVar("shininess","shininess2",updateObject);
    objectList = new InputVar("objects",switchObject);
    perspectiveToggle = new InputVar("perspective",render);
    perspectiveToggle.val(false);
@@ -665,7 +668,7 @@ function switchObject(e){
    colR.val(options.color.r,false);
    colG.val(options.color.g,false);
    colB.val(options.color.b,false);
-   colA.val(options.color.a,false);
+   shininess.val(options.materialShininess,false);
    
    
 }
@@ -687,7 +690,7 @@ function newObject(){
    options.color.r = colR.val();
    options.color.g = colG.val();
    options.color.b = colB.val();
-   options.color.a = colA.val();
+   options.materialShininess = shininess.val();
 //   console.log(options);
    var x = new DrawObject(options);
    currentObject=objects.length;//old length = new index
@@ -712,7 +715,7 @@ function updateObject(){
    objects[currentObject].color.r = colR.val();
    objects[currentObject].color.g = colG.val();
    objects[currentObject].color.b = colB.val();
-   objects[currentObject].color.a = colA.val();
+   objects[currentObject].materialShininess = shininess.val();
    objects[currentObject].pointsCurrent=false;
    //objectList.options[currentObject].text = currentObject;
    objectList.options[currentObject].text = objects[currentObject].toString();
