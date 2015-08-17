@@ -49,13 +49,13 @@
                            0.0,  0.0, 1.0, 0.0,
                            0.0,  0.0, 0.0, 1.0 );
                            
-            vec3 pos = -(modelViewMatrix*vPosition).xyz;
+            vec3 pos = -(modelViewMatrix* translation * rz*ry*rx *vPosition).xyz;
             vec3 light = lightPosition.xyz;
             vec3 L = normalize (light-pos);
             vec3 E = normalize(-pos);
             vec3 H = normalize( L+E ); //halfway vector
             //Transform vertex normal into eye coordinates:
-            vec3 N = normalize( (modelViewMatrix*vNormal).xyz);
+            vec3 N = normalize( (modelViewMatrix* translation * rz*ry*rx  *vNormal).xyz);
             //compute terms in illumination equation
                   // - Ambient
             vec4 ambient = ambientProduct;
@@ -199,9 +199,9 @@
             Y<input type="range" id="locY" min="-10" max="10" step="0.01" value="0" /><input type="number" id="locY2" min="-20" max="20" step="0.01" value="0" /><br />
             Z<input type="range" id="locZ" min="-10" max="10" step="0.01" value="0" /><input type="number" id="locZ2" min="-20" max="20" step="0.01" value="0" /><br />
             &emsp;Rotation:<br />
-            X<input type="range" id="rotX" min="0" max="360" step="0.01" value="45" /><input type="number" id="rotX2" min="0" max="360" step="1.0" value="45" /><br />
-            Y<input type="range" id="rotY" min="0" max="360" step="0.01" value="45" /><input type="number" id="rotY2" min="0" max="360" step="1.0" value="45" /><br />
-            Z<input type="range" id="rotZ" min="0" max="360" step="0.01" value="45" /><input type="number" id="rotZ2" min="0" max="360" step="1.0" value="45" /><br />
+            X<input type="range" id="rotX" min="0" max="360" step="1.00" value="45" /><input type="number" id="rotX2" min="0" max="360" step="1.0" value="45" /><br />
+            Y<input type="range" id="rotY" min="0" max="360" step="1.00" value="45" /><input type="number" id="rotY2" min="0" max="360" step="1.0" value="45" /><br />
+            Z<input type="range" id="rotZ" min="0" max="360" step="1.00" value="45" /><input type="number" id="rotZ2" min="0" max="360" step="1.0" value="45" /><br />
             Radius:<input type="number" id="radius" class="options sphereOptions cylinderOptions" min="0.01" max="4" value="1.0" step="0.01"/><br />
             Height:<input type="number" id="height" class="options cubeOptions cylinderOptions" min="0.01" max="4" value="1.0" step="0.01" /><br />
             &emsp;Color:<br />
