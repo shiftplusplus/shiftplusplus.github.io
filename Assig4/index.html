@@ -20,8 +20,10 @@
          uniform vec4 ambientProduct, diffuseProduct, specularProduct;
 
 
-         uniform vec4 lightPosition;
+         uniform vec4 lightPosition[2];
          uniform float shininess;
+         
+         vec4 tempColor = vec4(0.0,0.0,0.0,0.0);
          void main()
          {
             // Compute the sines and cosines of theta for each of
@@ -49,13 +51,16 @@
                            0.0,  0.0, 1.0, 0.0,
                            0.0,  0.0, 0.0, 1.0 );
                            
-            vec3 pos = -(modelViewMatrix* translation * rz*ry*rx *vPosition).xyz;
-            vec3 light = lightPosition.xyz;
+            vec3 pos = -(projectionMatrix * modelViewMatrix* translation * rz*ry*rx *vPosition).xyz;
+            
+            for( int i=0; i<2; i++){ //numLights ==2
+               vec4 currentPosition = lightPosition[i];
+            vec3 light = (projectionMatrix * modelViewMatrix * currentPosition).xyz;
             vec3 L = normalize (light-pos);
             vec3 E = normalize(-pos);
             vec3 H = normalize( L+E ); //halfway vector
             //Transform vertex normal into eye coordinates:
-            vec3 N = normalize( (modelViewMatrix* translation * rz*ry*rx  *vNormal).xyz);
+            vec3 N = normalize( (projectionMatrix * modelViewMatrix* translation * rz*ry*rx  *vNormal).xyz);
             //compute terms in illumination equation
                   // - Ambient
             vec4 ambient = ambientProduct;
@@ -66,10 +71,12 @@
             float Ks = pow(max(dot(N,H),0.0), shininess );
             vec4 specular = Ks* specularProduct;
             if(dot(L,N)<0.0) specular = vec4(0.0,0.0,0.0,1.0);
-                                                                                 
+            tempColor = tempColor + ambient+diffuse+specular;
+            }
+            
             gl_Position = projectionMatrix * modelViewMatrix * translation * rz*ry*rx * vPosition; //TRS
-            fColor=ambient+diffuse+specular;
-            fColor.a=1.0;
+            fColor=clamp(tempColor,vec4(0.0,0.0,0.0,0.0),vec4(1.0,1.0,1.0,1.0));
+                         //fColor.a=1.0;
          }
       
       
@@ -163,11 +170,11 @@
             
             <label for="perspective">Perspective</label>
             <input type="checkbox" id="perspective" checked="checked" style="visibility:none" /><br />
-            Near: <input type="range" id="near" min=".01" max="10" value="1" step="0.1" /><br />
-            Far: <input type="range" id="far" min="3" max="60" value="10" ste="0.1" /><br />
-            Radius: <input type="range" id="rad" min="0.05" max="20" value="3" step="0.05"/><br />
-            Longitude (&theta;): <input type="range" id="theta" min="-360" max="360" value="0" step="1"/><br />
-            Latitude (&phi;) <input type="range" id="phi" min="-360" max="360" step="1" value="0" /><br />
+            Near: <input type="range" id="near" min=".01" max="10" value="0.1" step="0.1" /><br />
+            Far: <input type="range" id="far" min="3" max="100" value="50" step="1" /><br />
+            Radius: <input type="range" id="rad" min="0.05" max="20" value="5" step="0.05"/><br />
+            Longitude (&theta;): <input type="range" id="theta" min="-360" max="360" value="60" step="5"/><br />
+            Latitude (&phi;) <input type="range" id="phi" min="-360" max="360" step="5" value="60" /><br />
             FOV: <input type="range" id="fovy" min="10" max="200" value="100" step="1"/><br />
             Aspect ratio: <input type="range" id="aspect" min="0.5" max="2" value="1" step="0.1" /><br />
             <hr />

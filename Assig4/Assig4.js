@@ -495,7 +495,7 @@ Array.prototype.extend = function (other_array) {
 }
 
 
-var lightPosition = vec4(2.0, 2.0, 2.0, 0.0 );
+var lightPosition = [vec4(10.0, 10.0, 10.0, 0.0 ),vec4(-20.0,-20.0,-20.0,0.0)]; //these have to be animated a/o adjustable
 var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
