@@ -319,6 +319,8 @@ function DrawObject(options){
             for (var i=0;i<points.length;i++){
                this.normals.push(vec4(normalize(vec3(points[i])),0));
             }
+            
+            
             normalsArray=this.normals;
             break;
          case "sphere":
@@ -347,11 +349,20 @@ function DrawObject(options){
             for(var j=0;j<points.length;j++){
                npoints.push(norm(points[j],r));
             }
-            points=npoints;
+               points=npoints;
 
             for (var i=0;i<points.length;i++){
                this.normals.push(vec4(normalize(vec3(points[i])),0));
             }
+            
+            if(gem.val()){
+               for(var i=0;i<this.normals.length; i+=3){
+                  this.normals[i]  = vec4(normalize(vec3(this.normals[i][0]*Math.random(),this.normals[i][0]*Math.random(),this.normals[i][0]*Math.random())),0);
+                  this.normals[i+1]=this.normals[i];
+                  this.normals[i+2]=this.normals[i];
+               }
+            }
+            
             normalsArray=this.normals;
             break;
          case "cylinder":
@@ -524,6 +535,8 @@ var tessellations = 2;
 var light1, light1X,light1Y,light1Z,light1Animate;
 var light2, light2X,light2Y,light2Z,light2Animate;
 
+var gem;
+
 //var amAnimating= false;
 
 
@@ -596,6 +609,8 @@ window.onload = function init(){
    light2Z = new InputVar("light2Z",render);
    light2Animate = new InputVar("light2Animate",animLight2);
    light2Animate.val(false,false);
+   gem = new InputVar("gem",render);
+   gem.val(false,false);
    
    
    document.getElementById("newObject").onclick= newObject;
