@@ -25,7 +25,6 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE. */
-
 // modified from gl-matrix.js
 function inverseMat3(a) {
    var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3],
@@ -144,8 +143,11 @@ function InputVar(id, change){
             }else{
                this.element.value=x;
             }
-            this.v = x;
-            
+            if(!isNaN(Number(x))){
+               this.v=Number(x);
+            }else{
+               this.v = x;
+            }
             if(this.change != null&&callChange!=false){
                this.change(this);
             }
@@ -495,11 +497,11 @@ Array.prototype.extend = function (other_array) {
 }
 
 
-var lightPosition = [vec4(10.0, 10.0, 10.0, 0.0 ),vec4(-20.0,-20.0,-20.0,0.0)]; //these have to be animated a/o adjustable
+
 var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
-
+var lightPosition = [vec4(10.0, 10.0, 10.0, 0.0 ),vec4(-20.0,-20.0,-20.0,0.0)];
 
 
 
@@ -522,8 +524,13 @@ var colG;
 var colB;
 var shininess;
 var objectList;
-var perspectiveToggle;
+var perspectiveAnimate;
 var tessellations = 2;
+
+var light1, light1X,light1Y,light1Z,light1Animate;
+var light2, light2X,light2Y,light2Z,light2Animate;
+
+//var amAnimating= false;
 
 
 var near;// = 0.3;
@@ -569,8 +576,8 @@ window.onload = function init(){
    colB = new LinkedVar("colB","colB2",updateObject);
    shininess = new LinkedVar("shininess","shininess2",updateObject);
    objectList = new InputVar("objects",switchObject);
-   perspectiveToggle = new InputVar("perspective",render);
-   perspectiveToggle.val(false);
+   perspectiveAnimate = new InputVar("perspectiveAnimate",render);
+   perspectiveAnimate.val(false,false);
    tessellation = new InputVar("res",updateTessellation);
    near = new InputVar("near",render);
    far = new InputVar("far",render);
@@ -579,6 +586,23 @@ window.onload = function init(){
    phi = new InputVar("phi",render);
    fovy = new InputVar("fovy",render);
    aspect = new InputVar("aspect",render);
+   light1 = new InputVar("light1",toggleLight);
+   light1.val(true,false);
+   light1.on = true;
+   light1X = new InputVar("light1X",render);
+   light1Y = new InputVar("light1Y",render);
+   light1Z = new InputVar("light1Z",render);
+   light1Animate = new InputVar("light1Animate",animLight1);
+   light1Animate.val(false,false);
+   light2 = new InputVar("light2",toggleLight);
+   light2.val(true,false);
+   light2.on = true;
+   light2X = new InputVar("light2X",render);
+   light2Y = new InputVar("light2Y",render);
+   light2Z = new InputVar("light2Z",render);
+   light2Animate = new InputVar("light2Animate",animLight2);
+   light2Animate.val(false,false);
+   
    
    document.getElementById("newObject").onclick= newObject;
    document.getElementById("delObject").onclick= deleteObject;
@@ -601,6 +625,10 @@ function updateTessellation(e){
 
 var points = []
 function render(){
+   lightPosition = [
+                        vec4(light1X.val(), light1Y.val(), light1Z.val(), 0.0 ),
+                        vec4(light2X.val(), light2Y.val(), light2Z.val(), 0.0 )
+                        ]; //these have to be animated a/o adjustable
    
    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
    for(var i=0;i<objects.length;i++){
@@ -622,13 +650,9 @@ function render(){
       modelViewMatrix = lookAt(eye, at , up);
       normalMatrixLoc = gl.getUniformLocation( objects[i].program, "normalMatrix" );
       
+      projectionMatrix = perspective(fovy.val(), aspect.val(), near.val(), far.val());
       
-
-      if(perspectiveToggle.val()){
-         projectionMatrix = perspective(fovy.val(), aspect.val(), near.val(), far.val());
-      }else{
-         projectionMatrix = ortho(-5,5,-5,5,5,-5);
-      }
+      
       
       normalMatrix = inverseMat3(flatten(modelViewMatrix));
       normalMatrix = transpose(normalMatrix);
@@ -640,6 +664,68 @@ function render(){
       gl.drawArrays(gl.TRIANGLE_STRIP,0,(points).length);
 //      gl.uniform4fv(objects[i].colorLoc,vec4(0.0,0.0,0.0,1.0));
 //      gl.drawArrays(gl.LINE_LOOP,0,(points).length);
+   }
+   if(perspectiveAnimate.val()){
+      theta.val(Number(theta.val())+0.5, false);
+      if(theta.val()>theta.element.max){
+         theta.val(theta.element.min, false);
+      }
+      phi.val(Number(phi.val())+0.5, false);
+      if(phi.val()>phi.element.max){
+         phi.val(phi.element.min, false);
+      }
+   }
+   if(light1Animate.val()){
+      var w = Math.floor(Math.random()*3);
+      switch(w){
+         case 0:
+            light1X.val(light1X.val()+1,false);
+            break;
+         case 1:
+            light1Y.val(light1Y.val()+1,false);
+            break;
+         case 2:
+            light1Z.val(light1Z.val()+1,false);
+            break;
+         }
+      if(light1X.val()>light1X.element.max){
+         light1X.val(light1X.element.min,false);
+         }
+      if(light1Y.val()>light1Y.element.max){
+         light1Y.val(light1Y.element.min,false);
+         }
+      if(light1Z.val()>light1Z.element.max){
+         light1Z.val(light1Z.element.min,false);
+         }
+      }
+   
+   if(light2Animate.val()){
+      var w = Math.floor(Math.random()*3);
+      switch(w){
+         case 0:
+            light2X.val(light2X.val()-1,false);
+            break;
+         case 1:
+            light2Y.val(light2Y.val()-1,false);
+            break;
+         case 2:
+            light2Z.val(light2Z.val()-1,false);
+            break;
+      }
+      if(light2X.val()<light2X.element.min){
+         light2X.val(light2X.element.max,false);
+      }
+      if(light2Y.val()<light2Y.element.min){
+         light2Y.val(light2X.element.max,false);
+      }
+      if(light2Z.val()<light2Z.element.min){
+         light2Z.val(light2X.element.max,false);
+      }
+   }
+   
+   if( perspectiveAnimate.val()|| light1Animate.val() || light2Animate.val() ){
+      console.log("animating");
+      requestAnimationFrame(render);
    }
 }
 
@@ -816,4 +902,50 @@ function updateOutput(e){;
    output.innerText = e.val();
    updateObject(e);
    
+}
+light1pos=[];
+light2pos=[];
+function toggleLight(e){
+   if(e.id=="light1"){
+      if(e.on){
+         light1pos = vec3(light1X.val(),light1Y.val(),light1Z.val());
+         light1X.val(0,false);
+         light1Y.val(0,false);
+         light1Z.val(0, false);
+         e.on=false;
+      }else{
+         light1X.val(light1pos[0],false);
+         light1Y.val(light1pos[1],false);
+         light1Z.val(light1pos[2],false);
+         e.on=true;
+      }
+   }else if(e.id=="light2"){
+      if(e.on){
+         light2pos = vec3(light2X.val(),light2Y.val(),light2Z.val());
+         light2X.val(0,false);
+         light2Y.val(0,false);
+         light2Z.val(0, false);
+         e.on=false;
+      }else{
+         light2X.val(light2pos[0],false);
+         light2Y.val(light2pos[1],false);
+         light2Z.val(light2pos[2],false);
+         e.on=true;
+      }
+
+   }
+   requestAnimationFrame(render);
+}
+
+function animLight1(){
+   if(light1.element.on){
+      light1.val(true);
+   }
+   requestAnimationFrame(render);
+}
+function animLight2(){
+   if(!light2.element.on){
+      light2.val(true);
+   }
+   requestAnimationFrame(render);
 }
