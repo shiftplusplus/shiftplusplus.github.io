@@ -173,9 +173,6 @@ function InputVar(id, change){
             this.radioElements[i].onchange = this.onupdate;
          }
       }else{
-         
-         //         console.log(this);
-         
          this.element.onchange = this.onupdate;
          this.element.onpaste = this.onupdate;
          this.element.onkeyup = this.onupdate;
@@ -315,7 +312,6 @@ function DrawObject(options){
             }
             for(var k=0;k<points.length;k++){
                if(points[k][1]!=h){
-                  //                  console.log(k,points[k]);
                   points[k][1]=0;
                   points[k] = norm(points[k],r);
                }
@@ -414,9 +410,7 @@ function DrawObject(options){
             }
             for(var n=-1;n<2;n=n+2){
                for(var m=0;m<points.length;m++){
-                  //                  console.log(" "+points[m]);
                   npoints.push(vec4(points[m][0],n*h,points[m][1],1));
-                  //                  console.log(points[m])
                }
             }
             //            points.extend(npoints);
@@ -660,10 +654,7 @@ function render(){
       
       gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
       gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
-      //            console.log(points,points.length);
       gl.drawArrays(gl.TRIANGLE_STRIP,0,(points).length);
-//      gl.uniform4fv(objects[i].colorLoc,vec4(0.0,0.0,0.0,1.0));
-//      gl.drawArrays(gl.LINE_LOOP,0,(points).length);
    }
    if(perspectiveAnimate.val()){
       theta.val(Number(theta.val())+0.5, false);
@@ -724,7 +715,6 @@ function render(){
    }
    
    if( perspectiveAnimate.val()|| light1Animate.val() || light2Animate.val() ){
-      console.log("animating");
       requestAnimationFrame(render);
    }
 }
@@ -767,7 +757,6 @@ function norm(a,radius){
    if(isNaN(newl)){
       console.log("uh-oh");
    }
-   //   console.log(a,al,a2,newl);
    return a2;
    
 }
@@ -845,7 +834,6 @@ function newObject(){
    options.color.g = colG.val();
    options.color.b = colB.val();
    options.materialShininess = shininess.val();
-//   console.log(options);
    var x = new DrawObject(options);
    currentObject=objects.length;//old length = new index
    objects.push(x);
@@ -871,26 +859,19 @@ function updateObject(){
    objects[currentObject].color.b = colB.val();
    objects[currentObject].materialShininess = shininess.val();
    objects[currentObject].pointsCurrent=false;
-   //objectList.options[currentObject].text = currentObject;
    objectList.options[currentObject].text = objects[currentObject].toString();
    render();
 }
 
 function deleteObject(){
-//   console.log(objectList.val(),currentObject,objects);
    objects.splice(currentObject,1);
    objectList.element.remove(currentObject);
-   //   if(currentObject==objects.length){
-   //      currentObject--;
-   //   }
-   //   objectList.val(currentObject);
    if(objects[currentObject]==undefined){
       currentObject--;
    }
    for(var i=0;i<objectList.element.options.length;i++){
       objectList.element.options[i].value=i;
    }
-//   console.log(objectList.val()==currentObject,objects);
    render();
 }
 function scaleCanvas(){
