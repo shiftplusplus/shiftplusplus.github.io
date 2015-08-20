@@ -277,7 +277,7 @@ function DrawObject(options){
    this.normals=[];
    this.calculatePoints = function(){
       if(this.pointsCurrent){
-         normalsArray = this.normals;
+         normalsArray = JSON.parse(JSON.stringify(this.normals));
          return this.points;
       }
       
@@ -320,8 +320,6 @@ function DrawObject(options){
                this.normals.push(vec4(normalize(vec3(points[i])),0));
             }
             
-            
-            normalsArray=this.normals;
             break;
          case "sphere":
             //tessellate and normalize some a solid.
@@ -354,16 +352,6 @@ function DrawObject(options){
             for (var i=0;i<points.length;i++){
                this.normals.push(vec4(normalize(vec3(points[i])),0));
             }
-            
-            if(gem.val()){
-               for(var i=0;i<this.normals.length; i+=3){
-                  this.normals[i]  = vec4(normalize(vec3(this.normals[i][0]*Math.random(),this.normals[i][0]*Math.random(),this.normals[i][0]*Math.random())),0);
-                  this.normals[i+1]=this.normals[i];
-                  this.normals[i+2]=this.normals[i];
-               }
-            }
-            
-            normalsArray=this.normals;
             break;
          case "cylinder":
             //two circles, drum lacing.
@@ -430,11 +418,9 @@ function DrawObject(options){
             for (var i=0;i<points.length;i++){
                this.normals.push(vec4(normalize(vec3(points[i])),0));
             }
-            normalsArray=this.normals;
-
             break;
       }
-      
+      normalsArray = JSON.parse(JSON.stringify(this.normals));
       this.points = points;
       this.pointsCurrent=true;
       return points;
@@ -649,6 +635,16 @@ function render(){
       
       gl.useProgram( objects[i].program );
       objects[i].sendColor();
+      
+      if(gem.val()){
+         for(var j=0;j<normalsArray.length; j+=3){
+            normalsArray[j]  = vec4(normalize(vec3(normalsArray[j][0]*Math.random(),normalsArray[j][0]*Math.random(),normalsArray[j][0]*Math.random())),0);
+            normalsArray[j+1]=normalsArray[j];
+            normalsArray[j+2]=normalsArray[j];
+         }
+      }else{
+         normalsArray = objects[i].normals;
+      }
       objects[i].sendVertices(objects[i].points);
       objects[i].sendOptions();
       
