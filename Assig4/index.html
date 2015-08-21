@@ -6,26 +6,27 @@
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
       <script id="vertex-shader" type="x-shader/x-vertex">
          attribute  vec4 vPosition;
-         //attribute  vec4 vColor;
-         //uniform vec4 fColor;
-         
          uniform vec3 theta;
          uniform vec3 translate;
-         float d = -1.0;
          uniform mat4 projectionMatrix;
          uniform mat4 modelViewMatrix;
          
          attribute vec4 vNormal;
-         varying vec4 fColor;
-         uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+         //varying vec4 fColor;
+         //uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+         varying vec3 N[2];
+         varying vec3 L[2];
+         varying vec3 E[2];
+         varying float att[2];
+
 
 
          uniform vec4 lightPosition[2];
-         uniform float shininess;
+         //uniform float shininess;
          
          vec4 vertexFinalPosition;
          
-         vec4 tempColor = vec4(0.0,0.0,0.0,0.0);
+         //vec4 tempColor = vec4(0.0,0.0,0.0,0.0);
          void main()
          {
             // Compute the sines and cosines of theta for each of
@@ -59,34 +60,37 @@
             for( int i=0; i<2; i++){ //numLights ==2
                vec4 currentPosition = lightPosition[i];
                if(currentPosition == vec4(0,0,0,0)){
+                  L[i]=vec3(0,0,0);
+                  E[i]=vec3(0,0,0);
+                  N[i]=vec3(0,0,0);
+                  att[i]=0.0;
                   continue;
                }
             vec3 light = (projectionMatrix * modelViewMatrix * currentPosition).xyz;
             float distance = sqrt( (vertexFinalPosition.x-light.x)*(vertexFinalPosition.x-light.x) + (vertexFinalPosition.y-light.y)*(vertexFinalPosition.y-light.y) + (vertexFinalPosition.z-light.z)*(vertexFinalPosition.z-light.z) );
-            float att = clamp(1.0 / (1.0 + 0.1*distance + 0.01*distance*distance),0.0,1.0);
-            vec3 L = normalize (light-pos);
-            vec3 E = normalize(-pos);
-            vec3 H = normalize( L+E ); //halfway vector
+            att[i] = clamp(1.0 / (1.0 + 0.1*distance + 0.01*distance*distance),0.0,1.0);
+            L[i] = normalize (light-pos);
+            E[i] = normalize(-pos);
+            //vec3 H = normalize( L+E ); //halfway vector
             //Transform vertex normal into eye coordinates:
-            vec3 N = normalize( (projectionMatrix * modelViewMatrix* translation * rz*ry*rx  *vNormal).xyz);
+            N[i] = normalize( (projectionMatrix * modelViewMatrix* translation * rz*ry*rx  *vNormal).xyz);
             //compute terms in illumination equation
                   // - Ambient
-            vec4 ambient = ambientProduct;
+            //vec4 ambient = ambientProduct;
                   // -Lambertian diffuse term
-            float Kd = max(dot(L,N),0.0); //make sure its front facing with max.
-            vec4 diffuse = att*Kd*diffuseProduct;
+            //float Kd = max(dot(L,N),0.0); //make sure its front facing with max.
+            //vec4 diffuse = att*Kd*diffuseProduct;
                   // -specular
-            float Ks = pow(max(dot(N,H),0.0), shininess );
-            vec4 specular = att * Ks* specularProduct;
-            if(dot(L,N)<0.0) specular = vec4(0.0,0.0,0.0,1.0);
+            //float Ks = pow(max(dot(N,H),0.0), shininess );
+            //vec4 specular = att * Ks* specularProduct;
+            //if(dot(L,N)<0.0) specular = vec4(0.0,0.0,0.0,1.0);
             
             
-            tempColor = tempColor + ambient+diffuse+specular;
+            //tempColor = tempColor + ambient+diffuse+specular;
             }
             
             gl_Position = vertexFinalPosition;
-            fColor=clamp(tempColor,ambientProduct,vec4(0.981,0.981,0.981,1.0));
-                         //fColor.a=1.0;
+            //fColor=clamp(tempColor,ambientProduct,vec4(0.981,0.981,0.981,1.0));
          }
       
       
@@ -96,12 +100,32 @@
          
          precision mediump float;
          
-         varying vec4 fColor;
-         
-         void
-         main()
-         {
-            gl_FragColor = fColor;
+         //varying vec4 fColor;
+         uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+         uniform float shininess;
+         varying vec3 N[2];
+         varying vec3 L[2];
+         varying vec3 E[2];
+         varying float att[2];
+         vec4 tempColor = vec4(0.0,0.0,0.0,0.0);
+
+         void main(){
+            for(int i=0;i<2;i++){
+            vec3 H = normalize( L[i]+E[i] ); //halfway vector
+            //compute terms in illumination equation
+            // - Ambient
+            vec4 ambient = ambientProduct;
+            // -Lambertian diffuse term
+            float Kd = max(dot(L[i],N[i]),0.0); //make sure its front facing with max.
+            vec4 diffuse = att[i]*Kd*diffuseProduct;
+            // -specular
+            float Ks = pow(max(dot(N[i],H),0.0), shininess );
+            vec4 specular = att[i] * Ks* specularProduct;
+            if(dot(L[i],N[i])<0.0) specular = vec4(0.0,0.0,0.0,1.0);
+            
+            tempColor = tempColor + ambient+diffuse+specular;
+            }
+            gl_FragColor =clamp(tempColor,ambientProduct,vec4(0.981,0.981,0.981,1.0));
          }
       </script>
       
