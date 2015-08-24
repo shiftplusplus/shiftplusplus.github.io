@@ -382,7 +382,7 @@ function DrawObject(options){
                   tessellate (vertices[j],vertices[midpointIndex],vertices[endpointIndex], tessellations);
                   tessellate (vertices[0],vertices[7],vertices[2], tessellations);
                }
-               //                  points=vertices;
+
             }
             var npoints=[];
             for(var j=0;j<points.length;j++){
@@ -391,7 +391,6 @@ function DrawObject(options){
                p[1]=points[j][1]; //reset y
                npoints.push(p);
             }
-            //            points=npoints;
             vertices2=[];
             points=[];
             for(var k=0;k<vertices.length;k++){
@@ -412,7 +411,6 @@ function DrawObject(options){
                   npoints.push(vec4(points[m][0],n*h,points[m][1],1));
                }
             }
-            //            points.extend(npoints);
 
             points=npoints;
             for (var i=0;i<points.length;i++){
@@ -427,7 +425,6 @@ function DrawObject(options){
    }
    
    this.program = initShaders( gl, "vertex-shader", "fragment-shader" );
-//   this.colorLoc = gl.getUniformLocation(this.program,"fColor");
    
 
    
@@ -435,8 +432,11 @@ function DrawObject(options){
    this.sendColor = function(){
       ambientLight = Math.min(objects.length*0.5,3);
       this.materialAmbient = vec4(this.color.r*ambientLight,this.color.g*ambientLight,this.color.b*ambientLight,1.0);
-      this.materialDiffuse = vec4(this.color.r,this.color.g,this.color.b,1.0);
-      this.materialSpecular = vec4(this.color.r*2,this.color.g*2,this.color.b*2,1.0);
+      this.materialDiffuse = vec4(this.color.r*2,this.color.g*2,this.color.b*2,1.0);
+      this.materialSpecular = vec4(this.color.r*5,this.color.g*5,this.color.b*5,1.0);
+//      this.materialAmbient = vec4(0.329412, 0.223529, 0.027451,1.0);
+//      this.materialDiffuse = vec4(0.780392, 0.568627, 0.113725, 1.0);
+//      this.materialSpecular = vec4(0.992157, 0.941176, 0.807843, 1.0);
    }
    this.vBuffer = gl.createBuffer();
    this.vPosition = gl.getAttribLocation( this.program, "vPosition" );

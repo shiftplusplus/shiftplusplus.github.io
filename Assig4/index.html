@@ -4,7 +4,7 @@
       <title>Assignment 4 | Interactive Computer Graphics with WebGL</title>
       
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-      <script id="vertex-shader" type="x-shader/x-vertex">
+      <script id="old-vertex-shader" type="x-shader/x-vertex">
          attribute  vec4 vPosition;
          uniform vec3 theta;
          uniform vec3 translate;
@@ -12,21 +12,14 @@
          uniform mat4 modelViewMatrix;
          
          attribute vec4 vNormal;
-         //varying vec4 fColor;
-         //uniform vec4 ambientProduct, diffuseProduct, specularProduct;
          varying vec3 N[2];
          varying vec3 L[2];
          varying vec3 E[2];
          varying float att[2];
-
-
-
          uniform vec4 lightPosition[2];
-         //uniform float shininess;
-         
+
          vec4 vertexFinalPosition;
          
-         //vec4 tempColor = vec4(0.0,0.0,0.0,0.0);
          void main()
          {
             // Compute the sines and cosines of theta for each of
@@ -40,7 +33,7 @@
                                     0.0,0.0,1.0,0.0,
                                     translate.x,translate.y,translate.z,1.0);
                                     
-                                    // Remember: matrices are column-major
+            // Remember: matrices are column-major
             mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
                            0.0,  c.x,  s.x, 0.0,
                            0.0, -s.x,  c.x, 0.0,
@@ -54,7 +47,7 @@
                            0.0,  0.0, 1.0, 0.0,
                            0.0,  0.0, 0.0, 1.0 );
                            
-            vec3 pos = -(projectionMatrix * modelViewMatrix* translation * rz*ry*rx *vPosition).xyz;
+            vec3 pos = (projectionMatrix * modelViewMatrix* translation * rz*ry*rx *vPosition).xyz;
             vertexFinalPosition = projectionMatrix * modelViewMatrix * translation * rz*ry*rx * vPosition; //TRS
             
             for( int i=0; i<2; i++){ //numLights ==2
@@ -71,22 +64,8 @@
             att[i] = clamp(1.0 / (1.0 + 0.1*distance + 0.01*distance*distance),0.0,1.0);
             L[i] = normalize (light-pos);
             E[i] = normalize(-pos);
-            //vec3 H = normalize( L+E ); //halfway vector
             //Transform vertex normal into eye coordinates:
             N[i] = normalize( (projectionMatrix * modelViewMatrix* translation * rz*ry*rx  *vNormal).xyz);
-            //compute terms in illumination equation
-                  // - Ambient
-            //vec4 ambient = ambientProduct;
-                  // -Lambertian diffuse term
-            //float Kd = max(dot(L,N),0.0); //make sure its front facing with max.
-            //vec4 diffuse = att*Kd*diffuseProduct;
-                  // -specular
-            //float Ks = pow(max(dot(N,H),0.0), shininess );
-            //vec4 specular = att * Ks* specularProduct;
-            //if(dot(L,N)<0.0) specular = vec4(0.0,0.0,0.0,1.0);
-            
-            
-            //tempColor = tempColor + ambient+diffuse+specular;
             }
             
             gl_Position = vertexFinalPosition;
@@ -96,7 +75,7 @@
       
          </script>
       
-      <script id="fragment-shader" type="x-shader/x-fragment">
+      <script id="old-fragment-shader" type="x-shader/x-fragment">
          
          precision mediump float;
          
@@ -124,6 +103,111 @@
             if(dot(L[i],N[i])<0.0) specular = vec4(0.0,0.0,0.0,1.0);
             
             tempColor = tempColor + ambient+diffuse+specular;
+            }
+            gl_FragColor =clamp(tempColor,ambientProduct,vec4(0.981,0.981,0.981,1.0));
+         }
+      </script>
+      
+      <script id="vertex-shader" type="x-shader/x-vertex">
+         
+         precision mediump float;
+         
+         attribute  vec4 vPosition;
+         uniform vec3 theta;
+         uniform vec3 translate;
+         uniform mat4 projectionMatrix;
+         uniform mat4 modelViewMatrix;
+         
+         attribute vec4 vNormal;
+         varying vec4 fNormal;
+         //uniform vec4 lightPosition[2];
+         
+         varying vec4 vertexEyePosition;
+         //varying vec3 lightFinalPosition[2];
+         
+         void main()
+         {
+            // Compute the sines and cosines of theta for each of
+            //   the three axes in one computation.
+            vec3 angles = radians( theta );
+            vec3 c = cos( angles );
+            vec3 s = sin( angles );
+            
+            mat4 translation = mat4(1.0,0.0,0.0,0.0,
+                                    0.0,1.0,0.0,0.0,
+                                    0.0,0.0,1.0,0.0,
+                                    translate.x,translate.y,translate.z,1.0);
+                                    
+            // Remember: matrices are column-major
+            mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
+                           0.0,  c.x,  s.x, 0.0,
+                           0.0, -s.x,  c.x, 0.0,
+                           0.0,  0.0,  0.0, 1.0 );
+            mat4 ry = mat4( c.y, 0.0, -s.y, 0.0,
+                           0.0, 1.0,  0.0, 0.0,
+                           s.y, 0.0,  c.y, 0.0,
+                           0.0, 0.0,  0.0, 1.0 );
+            mat4 rz = mat4( c.z, -s.z, 0.0, 0.0,
+                           s.z,  c.z, 0.0, 0.0,
+                           0.0,  0.0, 1.0, 0.0,
+                           0.0,  0.0, 0.0, 1.0 );
+
+            vertexEyePosition = modelViewMatrix * translation * rz*ry*rx * vPosition; //TRS
+
+         fNormal = vNormal;
+         gl_Position = projectionMatrix * vertexEyePosition;
+         }
+      
+      
+         </script>
+      
+      <script id="fragment-shader" type="x-shader/x-fragment">
+         
+         precision mediump float;
+         
+         //varying vec4 fColor;
+         uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+         uniform float shininess;
+         vec3 N[2];
+         vec3 L[2];
+         vec3 E[2];
+         float att[2];
+         varying vec4 vertexEyePosition;
+         varying vec4 fNormal;
+         uniform vec4 lightPosition[2];
+         vec4 tempColor = vec4(0.0,0.0,0.0,0.0);
+         uniform mat4 projectionMatrix;
+         uniform mat4 modelViewMatrix;
+         uniform mat4 normalMatrix;
+         
+         void main(){
+            vec3 pos = (normalMatrix * vertexEyePosition).xyz;
+            for(int i=0;i<2;i++){
+               vec3 light = (lightPosition[i]).xyz;
+               if(light == vec3(0,0,0)){
+                  L[i]=vec3(0,0,0);
+                  E[i]=vec3(0,0,0);
+                  N[i]=vec3(0,0,0);
+                  att[i]=0.0;
+                  continue;
+               }
+               float distance = sqrt( (vertexEyePosition.x-light.x)*(vertexEyePosition.x-light.x) + (vertexEyePosition.y-light.y)*(vertexEyePosition.y-light.y) + (vertexEyePosition.z-light.z)*(vertexEyePosition.z-light.z) );
+               att[i] = clamp(1.0 / (1.0 + 0.1*distance + 0.01*distance*distance),0.0,1.0);
+               L[i] = normalize (light-pos);
+               E[i] = normalize(-pos);
+               N[i] = normalize( (fNormal).xyz);
+               vec3 H = normalize( L[i]+E[i] ); //halfway vector
+            //compute terms in illumination equation
+               // - Ambient
+               vec4 ambient = ambientProduct;
+               // -Lambertian diffuse term
+               float Kd = max(dot(L[i],N[i]),0.0); //make sure its front facing with max.
+               vec4 diffuse = att[i]*Kd*diffuseProduct;
+               // -specular
+               float Ks = pow(max(dot(N[i],H),0.0), shininess );
+               vec4 specular = att[i] * Ks* specularProduct;
+               if(dot(L[i],N[i])<0.0) specular = vec4(0.0,0.0,0.0,1.0);
+               tempColor = tempColor + ambient+diffuse+specular;
             }
             gl_FragColor =clamp(tempColor,ambientProduct,vec4(0.981,0.981,0.981,1.0));
          }
@@ -216,13 +300,13 @@
             Lighting options <button onclick="$('#lightOptions').toggle();" />hide/show</button> <br />
                         <p id="lightOptions">
             Light 1 <input type="checkbox" id="light1" />|<input type="checkbox" id="light1Animate" />Animate<br />
-            X<input type="range" id="light1X" min="-30" max="30" value="10" step="1" /><br />
-            Y<input type="range" id="light1Y" min="-30" max="30" value="10" step="1" /><br />
+            X<input type="range" id="light1X" min="-30" max="30" value="-4" step="1" /><br />
+            Y<input type="range" id="light1Y" min="-30" max="30" value="-1" step="1" /><br />
             Z<input type="range" id="light1Z" min="-30" max="30" value="10" step="1" /><br />
             Light 2 <input type="checkbox" id="light2" />|<input type="checkbox" id="light2Animate" />Animate<br />
-            X<input type="range" id="light2X" min="-30" max="30" value="-20" step="1" /><br />
-            Y<input type="range" id="light2Y" min="-30" max="30" value="-20" step="1" /><br />
-            Z<input type="range" id="light2Z" min="-30" max="30" value="-20" step="1" /><br />
+            X<input type="range" id="light2X" min="-30" max="30" value="-9" step="1" /><br />
+            Y<input type="range" id="light2Y" min="-30" max="30" value="2" step="1" /><br />
+            Z<input type="range" id="light2Z" min="-30" max="30" value="0" step="1" /><br />
             
             </p>
             <hr />
@@ -263,7 +347,7 @@
             R<input type="range" id="colR" min="0" max="1" step="0.01" value="0.5" /><input type="number" id="colR2" min="0" max="1" step="0.01" value="0.5" /><br />
             G<input type="range" id="colG" min="0" max="1" step="0.01" value="0.5" /><input type="number" id="colG2" min="0" max="1" step="0.01" value="0.5" /><br />
             B<input type="range" id="colB" min="0" max="1" step="0.01" value="0.5" /><input type="number" id="colB2" min="0" max="1" step="0.01" value="0.5" /><br />
-            Shininess<input type="range" id="shininess" min="0" max="300" step="10" value="50" /><input type="number" id="shininess2" min="0" max="300" step="1" value="50" /><br />
+            Shininess<input type="range" id="shininess" min="0" max="300" step="10" value="27.8974" /><input type="number" id="shininess2" min="0" max="300" step="1" value="27.8974" /><br />
             </p>
             <hr />
          </div>
