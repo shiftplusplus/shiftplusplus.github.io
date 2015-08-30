@@ -175,9 +175,11 @@ function deg2Rad(deg){
 
 var points = [];//[[0.5,0,0,1],[0,0,0,1],[0.5,0.5,0,1]];
 var texCoords=[];
-var checkImage;
+//var checkImage;
 latitudes=[];
 texCoordslats = [];
+var image;
+var texture;
 
 window.onload = function init(){
    canvas = document.getElementById("gl-canvas");
@@ -196,9 +198,17 @@ window.onload = function init(){
    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
    gl.enable(gl.BLEND);
    
-   generateCheckerboardImage();
    
-   render();
+   
+//   generateCheckerboardImage();
+   
+   image = new Image();
+   image.crossOrigin = "anonymous";
+   image.src = "SA2011_black.gif";
+   image.onload = function() {
+      configureTexture( image );
+      render();
+   }
 }
 
 function generateCheckerboardImage(texSize,numChecks){
@@ -230,7 +240,7 @@ function render(){
    
    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
    
-   r= 0.5;
+   r= 1;
    latitudes = [];
    texCoordslats=[];
    increment = 10;
@@ -243,7 +253,7 @@ function render(){
          longc = Math.cos(deg2Rad(long));
          longs = Math.sin(deg2Rad(long));
          latitude.push(vec4(r*longs*latc,r*longc,r*longs*lats,1.0));
-         texCoordslat.push(vec2((lat+90)/180,(long+180)/360));
+         texCoordslat.push(vec2(((lat+90)/180),(long+180)/360));
 //         latitude.push(" "+lat+" " +long);
          
       }
@@ -259,18 +269,62 @@ function render(){
       }
    }
    
-//    console.log(latitudes);
+//   configureCheckTexture(checkImage,512);
+   configureTexture(image);
+   gl.activeTexture(gl.TEXTURE2);
+   gl.uniform1i(gl.getUniformLocation(program, "texture"), 2);
    
-   bufferID = gl.createBuffer();
-   gl.bindBuffer(gl.ARRAY_BUFFER,bufferID);
+   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S, gl.REPEAT)
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+   
+   vBufferID = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER,vBufferID);
    gl.bufferData(gl.ARRAY_BUFFER,flatten(points),gl.STATIC_DRAW);
    vPosition = gl.getAttribLocation(program,"vPosition");
    gl.vertexAttribPointer( vPosition,4,gl.FLOAT,false,0,0);
    gl.enableVertexAttribArray(vPosition);
+   
+   tBufferID = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER,tBufferID);
+   gl.bufferData(gl.ARRAY_BUFFER,flatten(texCoords),gl.STATIC_DRAW);
+   vCoord = gl.getAttribLocation(program,"vCoord");
+   gl.vertexAttribPointer( vCoord,2,gl.FLOAT,false,0,0);
+   gl.enableVertexAttribArray(vCoord);
    gl.drawArrays(gl.TRIANGLE_STRIP,0,points.length);
+
 }
 
 function scaleCanvas(){
    canvas.width = window.innerWidth;
    canvas.height = window.innerHeight;
+}
+
+
+function configureCheckTexture( image ){
+   var texture = gl.createTexture();
+   gl.bindTexture( gl.TEXTURE_2D, texture);
+   gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true);
+   gl.texImage2D( gl.TEXTURE_2D,0,gl.RGBA, 512,512,0, gl.RGBA, gl.UNSIGNED_BYTE, image);
+   gl.generateMipmap( gl.TEXTURE_2D);
+   gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR );
+   gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR );
+   gl.activeTexture(gl.TEXTURE1);
+   gl.uniform1i(gl.getUniformLocation(program, "texture"), 1);
+}
+
+
+function configureTexture( image ) {
+   texture = gl.createTexture();
+   gl.bindTexture( gl.TEXTURE_2D, texture );
+   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+   gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB,
+                 gl.RGB, gl.UNSIGNED_BYTE, image );
+   gl.generateMipmap( gl.TEXTURE_2D );
+   gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+                    gl.NEAREST_MIPMAP_LINEAR );
+   gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
+   gl.activeTexture(gl.TEXTURE2);
+   gl.uniform1i(gl.getUniformLocation(program, "texture"), 2);
 }

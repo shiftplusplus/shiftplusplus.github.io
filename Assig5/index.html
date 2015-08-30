@@ -67,16 +67,21 @@
    
    <script id="vertex-shader" type="x-shader/x-vertex">
       attribute vec4 vPosition;
+      attribute vec2 vCoord;
+      varying vec2 tCoord;
       
       void main(){
          gl_Position=vPosition;
+         tCoord = vCoord;
       }
       </script>
    <script id="fragment-shader" type="x-shader/x-fragment">
       precision mediump float;
+      varying vec2 tCoord;
+      uniform sampler2D texture;
       
       void main(){
-         gl_FragColor=vec4(0.0,0.0,0.0,1.0);
+         gl_FragColor = texture2D(texture, tCoord);
       }
       </script>
    <script type="text/javascript" src="Assig5.js"></script>
@@ -85,5 +90,6 @@
       <canvas id="gl-canvas" width="512" height="512" >
          What, no Canvas! Maybe the guy in IT who says I need to get with the times and dump Netscape is right.
          </canvas>
+<!--      <img src="SA2011_black.gif" id="texImage" preload/>-->
    </body>
 </html>
