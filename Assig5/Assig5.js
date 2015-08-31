@@ -175,19 +175,37 @@ function deg2Rad(deg){
 
 var points = [];//[[0.5,0,0,1],[0,0,0,1],[0.5,0.5,0,1]];
 var texCoords=[];
-//var checkImage;
+var checkImage;
 latitudes=[];
 texCoordslats = [];
 var image;
 var texture;
+var camLat;
+var camLong;
+var camRad;
+var eye=vec3(1,1,1);
+const at = vec3(0.0, 0.0, 0.0);
+const up = vec3(1,1,1); //try and change to be 90º from eye
+
+var rotX;
+var rotY;
+var rotZ;
 
 window.onload = function init(){
    canvas = document.getElementById("gl-canvas");
-   window.onresize = scaleCanvas;
-   scaleCanvas();
+//   window.onresize = scaleCanvas;
+//   scaleCanvas();
    gl = WebGLUtils.setupWebGL(canvas, {preserveDrawingBuffer: true, alpha:false});
    if ( !gl ) { alert( "WebGL isn't available" ); }
+   camLat = new InputVar("camLat",changeCamera);
+   camLong = new InputVar("camLong",changeCamera);
+   camRad = new InputVar("camRad",changeCamera);
    
+   rotX = new LinkedVar("rotX","rotX2",render);
+   rotY = new LinkedVar("rotY","rotY2",render);
+   rotZ = new LinkedVar("rotZ","rotZ2",render);
+   
+   checkerboard = new InputVar("checkerboard",render);
    
    program = initShaders( gl,"vertex-shader","fragment-shader");
    gl.useProgram(program);
@@ -198,16 +216,14 @@ window.onload = function init(){
    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
    gl.enable(gl.BLEND);
    
-   
-   
-//   generateCheckerboardImage();
+   generateCheckerboardImage();
    
    image = new Image();
    image.crossOrigin = "anonymous";
    image.src = "SA2011_black.gif";
    image.onload = function() {
       configureTexture( image );
-      render();
+      changeCamera();
    }
 }
 
@@ -269,8 +285,11 @@ function render(){
       }
    }
    
-//   configureCheckTexture(checkImage,512);
+   if(checkerboard.val()==true){
+   configureCheckTexture(checkImage,512);
+   }else{
    configureTexture(image);
+   }
    gl.activeTexture(gl.TEXTURE2);
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 2);
    
@@ -292,6 +311,14 @@ function render(){
    vCoord = gl.getAttribLocation(program,"vCoord");
    gl.vertexAttribPointer( vCoord,2,gl.FLOAT,false,0,0);
    gl.enableVertexAttribArray(vCoord);
+   
+   viewMatrix = lookAt(eye, at , up);
+   viewMatrixLoc = gl.getUniformLocation(program,"viewMatrix");
+   gl.uniformMatrix4fv( viewMatrixLoc, false, flatten(viewMatrix) );
+   
+   thetaLoc = gl.getUniformLocation(program, "theta");
+   gl.uniform3fv(thetaLoc, vec3(rotX.val(),rotY.val(),rotZ.val()));
+   
    gl.drawArrays(gl.TRIANGLE_STRIP,0,points.length);
 
 }
@@ -327,4 +354,16 @@ function configureTexture( image ) {
    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
    gl.activeTexture(gl.TEXTURE2);
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 2);
+}
+
+function changeCamera(e){
+   var r = camRad.val();
+   var camLatR = deg2Rad(camLat.val());
+   var camLongR = deg2Rad(camLong.val());
+   var camLatS = Math.sin(camLatR);
+   var camLatC = Math.cos(camLatR);
+   var camLongS = Math.sin(camLongR);
+   var camLongC = Math.cos(camLongR);
+   eye=vec3(r*camLongS*camLatC,r*camLongC,r*camLongS*camLatS); //IMPLEMENT CAMERA MOVE (perspective - eye, at, up. Let up be 90º to eye if at all possible.
+   render();
 }

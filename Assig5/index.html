@@ -2,7 +2,7 @@
 <html>
    <head>
    <title>5: Mapping to a Sphere | Assignment | Interactive Computer Graphics with WebGL</title>
-   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
    <script type="text/javascript" src="../Common/MV.js"></script>
    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
    <script type="text/javascript" src="../Common/initShaders.js"></script>
@@ -69,9 +69,28 @@
       attribute vec4 vPosition;
       attribute vec2 vCoord;
       varying vec2 tCoord;
+      uniform mat4 viewMatrix;
+      uniform vec3 theta;
+
       
       void main(){
-         gl_Position=vPosition;
+         vec3 angles = radians( theta );
+         vec3 c = cos( angles );
+         vec3 s = sin( angles );
+         mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
+                        0.0,  c.x,  s.x, 0.0,
+                        0.0, -s.x,  c.x, 0.0,
+                        0.0,  0.0,  0.0, 1.0 );
+         mat4 ry = mat4( c.y, 0.0, -s.y, 0.0,
+                        0.0, 1.0,  0.0, 0.0,
+                        s.y, 0.0,  c.y, 0.0,
+                        0.0, 0.0,  0.0, 1.0 );
+         mat4 rz = mat4( c.z, -s.z, 0.0, 0.0,
+                        s.z,  c.z, 0.0, 0.0,
+                        0.0,  0.0, 1.0, 0.0,
+                        0.0,  0.0, 0.0, 1.0 );
+         
+         gl_Position= viewMatrix * rz*ry*rx * vPosition;
          tCoord = vCoord;
       }
       </script>
@@ -85,11 +104,33 @@
       }
       </script>
    <script type="text/javascript" src="Assig5.js"></script>
+   <style type="text/css">
+      div {
+         display: inline-block;
+      }
+   </style>
    </head>
    <body>
+      <h2>Assignment 5: Texture Mapping to a Sphere</h2>
+      <div id="controls">
+         <hr></hr>
+         Camera:<br />
+         Latitude: <input type="range" id="camLat" min="-90" max="90" val="0" ></input>
+         Longitude: <input type="range" id="camLong" min="-360" max="360" val="0"></input>
+         Radius: <input type="range" id="camRad" min="0" max="0" val="0" step="0.1"></input>
+         <hr></hr>
+         Rotation:<br />
+         X<input type="range" id="rotX" min="0" max="360" step="5" value="0" /><input type="number" id="rotX2" min="0" max="360" step="5" value="0" /><br />
+         Y<input type="range" id="rotY" min="0" max="360" step="5" value="0" /><input type="number" id="rotY2" min="0" max="360" step="5" value="0" /><br />
+         Z<input type="range" id="rotZ" min="0" max="360" step="5" value="0" /><input type="number" id="rotZ2" min="0" max="360" step="5" value="0" /><br />
+         <hr></hr>
+         Texture:
+         <label for="checkerboard">Checkerboard</label><input type="checkbox" id="checkerboard" ></input>
+      </div>
+      <div id="display">
       <canvas id="gl-canvas" width="512" height="512" >
          What, no Canvas! Maybe the guy in IT who says I need to get with the times and dump Netscape is right.
          </canvas>
-<!--      <img src="SA2011_black.gif" id="texImage" preload/>-->
+      </div>
    </body>
 </html>
