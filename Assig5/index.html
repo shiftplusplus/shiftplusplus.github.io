@@ -105,27 +105,35 @@
       </script>
    <script type="text/javascript" src="Assig5.js"></script>
    <style type="text/css">
+      body {
+         column-count: 2;
+         min-width:800px;
+      }
       div {
          display: inline-block;
+         column-span: 1;
       }
+   h1 {
+      column-span: all;
+   }
    </style>
    </head>
    <body>
-      <h2>Assignment 5: Texture Mapping to a Sphere</h2>
+      <h1>Assignment 5: Texture Mapping to a Sphere</h1>
       <div id="controls">
          <hr></hr>
-         Camera:<br />
-         Latitude: <input type="range" id="camLat" min="-90" max="90" val="0" ></input>
-         Longitude: <input type="range" id="camLong" min="-360" max="360" val="0"></input>
-         Radius: <input type="range" id="camRad" min="0" max="0" val="0" step="0.1"></input>
+         Camera:<br></br>
+         Latitude: <input type="range" id="camLat" min="-90" max="90" val="0" ></input><br></br>
+         Longitude: <input type="range" id="camLong" min="-360" max="360" val="0"></input><br></br>
+         Radius: <input type="range" id="camRad" min="0" max="0" val="0" step="0.1"></input><br></br>
          <hr></hr>
-         Rotation:<br />
-         X<input type="range" id="rotX" min="0" max="360" step="5" value="0" /><input type="number" id="rotX2" min="0" max="360" step="5" value="0" /><br />
-         Y<input type="range" id="rotY" min="0" max="360" step="5" value="0" /><input type="number" id="rotY2" min="0" max="360" step="5" value="0" /><br />
-         Z<input type="range" id="rotZ" min="0" max="360" step="5" value="0" /><input type="number" id="rotZ2" min="0" max="360" step="5" value="0" /><br />
+         Rotation:<br></br>
+         X<input type="range" id="rotX" min="0" max="360" step="5" value="0" /><input type="number" id="rotX2" min="0" max="360" step="5" value="0" /><br></br>
+         Y<input type="range" id="rotY" min="0" max="360" step="5" value="0" /><input type="number" id="rotY2" min="0" max="360" step="5" value="0" /><br></br>
+         Z<input type="range" id="rotZ" min="0" max="360" step="5" value="0" /><input type="number" id="rotZ2" min="0" max="360" step="5" value="0" /><br></br>
          <hr></hr>
-         Texture:
-         <label for="checkerboard">Checkerboard</label><input type="checkbox" id="checkerboard" ></input>
+         Texture:<br></br>
+         <label for="checkerboard">Checkerboard</label><input type="checkbox" id="checkerboard" ></input><br></br>
       </div>
       <div id="display">
       <canvas id="gl-canvas" width="512" height="512" >

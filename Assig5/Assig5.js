@@ -229,7 +229,7 @@ window.onload = function init(){
 
 function generateCheckerboardImage(texSize,numChecks){
    texSize = texSize || 512; //Whatever
-   numChecks = numChecks || 8; //Whatever
+   numChecks = numChecks || 32; //Whatever
    
    var image1 = new Uint8Array(4*texSize*texSize);
    
