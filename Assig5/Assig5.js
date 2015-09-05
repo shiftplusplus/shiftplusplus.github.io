@@ -217,14 +217,13 @@ window.onload = function init(){
    gl.enable(gl.BLEND);
    
    generateCheckerboardImage();
-   
    image = new Image();
    image.crossOrigin = "anonymous";
-   image.src = "SA2011_black.gif";
-   image.onload = function() {
-      configureTexture( image );
-      changeCamera();
-   }
+   document.getElementsByTagName("div")[0].appendChild(image);
+   image.width=50;
+   document.getElementById("imagesource").onchange=loadImage;
+   loadImage();
+   
 }
 
 function generateCheckerboardImage(texSize,numChecks){
@@ -352,8 +351,8 @@ function configureTexture( image ) {
    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
                     gl.NEAREST_MIPMAP_LINEAR );
    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
-   gl.activeTexture(gl.TEXTURE2);
-   gl.uniform1i(gl.getUniformLocation(program, "texture"), 2);
+   gl.activeTexture(gl.TEXTURE0);
+   gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
 }
 
 function changeCamera(e){
@@ -366,4 +365,13 @@ function changeCamera(e){
    var camLongC = Math.cos(camLongR);
    eye=vec3(r*camLongS*camLatC,r*camLongC,r*camLongS*camLatS); //IMPLEMENT CAMERA MOVE (perspective - eye, at, up. Let up be 90º to eye if at all possible.
    render();
+}
+
+function loadImage(){
+   image = new Image();
+   image.src = document.getElementById("imagesource").value;
+   image.onload = function() {
+      configureTexture( image );
+      changeCamera();
+   }
 }
