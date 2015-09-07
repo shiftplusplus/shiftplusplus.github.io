@@ -72,7 +72,7 @@ function InputVar(id, change){
             }else{
                this.element.value=x;
             }
-            if(!isNaN(Number(x))){
+            if(this.element.type!="checkbox" && !isNaN(Number(x))){
                this.v=Number(x);
             }else{
                this.v = x;
@@ -206,6 +206,9 @@ window.onload = function init(){
    rotZ = new LinkedVar("rotZ","rotZ2",render);
    
    checkerboard = new InputVar("checkerboard",render);
+   checkerboard.val(true,false);
+   mapping = new InputVar("mapping",render);
+   mapping.val(false,false);
    
    program = initShaders( gl,"vertex-shader","fragment-shader");
    gl.useProgram(program);
@@ -259,6 +262,8 @@ function render(){
    latitudes = [];
    texCoordslats=[];
    increment = 10;
+   points=[];
+   texCoords=[];
    for(var lat=-90;lat<=90;lat+=increment){
       latc = Math.cos(deg2Rad(lat));
       lats = Math.sin(deg2Rad(lat));
@@ -268,7 +273,11 @@ function render(){
          longc = Math.cos(deg2Rad(long));
          longs = Math.sin(deg2Rad(long));
          latitude.push(vec4(r*longs*latc,r*longc,r*longs*lats,1.0));
+         if(mapping.val()!=true){
          texCoordslat.push(vec2(((lat+90)/180),(long+180)/360));
+         }else{
+            texCoordslat.push(vec2(r*longs*latc,r*longc));
+         }
 //         latitude.push(" "+lat+" " +long);
          
       }
@@ -286,11 +295,13 @@ function render(){
    
    if(checkerboard.val()==true){
    configureCheckTexture(checkImage,512);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.uniform1i(gl.getUniformLocation(program, "texture"), 1);
    }else{
    configureTexture(image);
+   gl.activeTexture(gl.TEXTURE0);
+   gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
    }
-   gl.activeTexture(gl.TEXTURE2);
-   gl.uniform1i(gl.getUniformLocation(program, "texture"), 2);
    
    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S, gl.REPEAT)
    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
@@ -330,19 +341,20 @@ function scaleCanvas(){
 
 function configureCheckTexture( image ){
    var texture = gl.createTexture();
+   gl.activeTexture(gl.TEXTURE1);
    gl.bindTexture( gl.TEXTURE_2D, texture);
    gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true);
    gl.texImage2D( gl.TEXTURE_2D,0,gl.RGBA, 512,512,0, gl.RGBA, gl.UNSIGNED_BYTE, image);
    gl.generateMipmap( gl.TEXTURE_2D);
    gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR );
    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR );
-   gl.activeTexture(gl.TEXTURE1);
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 1);
 }
 
 
 function configureTexture( image ) {
    texture = gl.createTexture();
+   gl.activeTexture(gl.TEXTURE0);
    gl.bindTexture( gl.TEXTURE_2D, texture );
    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
    gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB,
@@ -351,7 +363,6 @@ function configureTexture( image ) {
    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
                     gl.NEAREST_MIPMAP_LINEAR );
    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
-   gl.activeTexture(gl.TEXTURE0);
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
 }
 
