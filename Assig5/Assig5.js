@@ -172,6 +172,13 @@ function LinkedVar(id1,id2,change){
 function deg2Rad(deg){
    return (Math.PI/180*deg);
 }
+function pausecomp(millis)
+{
+   var date = new Date();
+   var curDate = null;
+   do { curDate = new Date(); }
+   while(curDate-date < millis);
+}
 
 var points = [];//[[0.5,0,0,1],[0,0,0,1],[0.5,0.5,0,1]];
 var texCoords=[];
@@ -206,18 +213,19 @@ window.onload = function init(){
 //   scaleCanvas();
    gl = WebGLUtils.setupWebGL(canvas, {preserveDrawingBuffer: true, alpha:false});
    if ( !gl ) { alert( "WebGL isn't available" ); }
-//   camLat = new InputVar("camLat",changeCamera);
-//   camLong = new InputVar("camLong",changeCamera);
-//   camRad = new InputVar("camRad",changeCamera);
    
    rotX = new LinkedVar("rotX","rotX2",render);
    rotY = new LinkedVar("rotY","rotY2",render);
    rotZ = new LinkedVar("rotZ","rotZ2",render);
    
-   checkerboard = new InputVar("checkerboard",render);
-   checkerboard.val(true,false);
+//   checkerboard = new InputVar("checkerboard",render);
+//   checkerboard.val(true,false);
+   
+   
    mapping = new InputVar("mapping",render);
    mapping.val(false,false);
+   imageOptions = new InputVar("imageOptions",render);
+   bumpOptions = new InputVar("bumpOptions",render);
    
    near = new InputVar("near",render);
    far = new InputVar("far",render);
@@ -241,9 +249,19 @@ window.onload = function init(){
    image.crossOrigin = "anonymous";
    document.getElementsByTagName("div")[0].appendChild(image);
    image.width=50;
-   document.getElementById("imagesource").onchange=loadImage;
+//   document.getElementById("imagesource").onchange=loadImage;
    loadImage();
-   
+   imageOptions.val("checkerboard");
+//   var tempImage = new Image();
+//   document.body.appendChild(tempImage);
+   for(var k=1;k<imageOptions.options.length;k++){
+      (new Image()).src =imageOptions.options[k].value;
+//      tempImage.onLoad=function(){tempImage.width="200";};
+   }
+   for(var k=1;k<bumpOptions.options.length;k++){
+      (new Image()).src =bumpOptions.options[k].value;
+//      tempImage.onLoad=function(){tempImage.width="200";};
+   }
 }
 
 function generateCheckerboardImage(texSize,numChecks){
@@ -291,7 +309,7 @@ function render(){
          longs = Math.sin(deg2Rad(long));
          latitude.push(vec4(r*longs*latc,r*longc,r*longs*lats,1.0));
          if(mapping.val()!=true){
-         texCoordslat.push(vec2(((lat+90)/180),(long+180)/360));
+         texCoordslat.push(vec2(-((long+180)/360),(lat+90)/180));
          }else{
             texCoordslat.push(vec2(r*longs*latc+.5,r*longc+.5));
          }
@@ -310,11 +328,12 @@ function render(){
       }
    }
    
-   if(checkerboard.val()==true){
+   if(imageOptions.val()=="checkerboard"){
    configureCheckTexture(checkImage,512);
       gl.activeTexture(gl.TEXTURE1);
       gl.uniform1i(gl.getUniformLocation(program, "texture"), 1);
    }else{
+      loadImage();
    configureTexture(image);
    gl.activeTexture(gl.TEXTURE0);
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
@@ -354,6 +373,14 @@ function render(){
    thetaLoc = gl.getUniformLocation(program, "theta");
    gl.uniform3fv(thetaLoc, vec3(rotX.val(),rotY.val(),rotZ.val()));
    
+   bumpLoc = gl.getUniformLocation(program,"useBump");
+   if(bumpOptions.val()=="none"){
+      gl.uniform1i(bumpLoc,0);
+   }else{
+      gl.uniform1i(bumpLoc,1);
+      loadImage(true);
+   }
+   
    gl.drawArrays(gl.TRIANGLE_STRIP,0,points.length);
 
 }
@@ -374,6 +401,8 @@ function configureCheckTexture( image ){
    gl.texParameteri (gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR );
    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR );
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 1);
+   document.getElementById("imageDiv").innerHTML="";
+   
 }
 
 
@@ -391,25 +420,43 @@ function configureTexture( image ) {
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
 }
 
-function changeCamera(e){
-//   var r = camRad.val();
-//   var camLatR = deg2Rad(camLat.val());
-//   var camLongR = deg2Rad(camLong.val());
-//   var camLatS = Math.sin(camLatR);
-//   var camLatC = Math.cos(camLatR);
-//   var camLongS = Math.sin(camLongR);
-//   var camLongC = Math.cos(camLongR);
-//   eye=vec3(r*camLongS*camLatC,r*camLongC,r*camLongS*camLatS); //IMPLEMENT CAMERA MOVE (perspective - eye, at, up. Let up be 90º to eye if at all possible.
-   render();
+function configureBumpTexture( image ) {
+   texture = gl.createTexture();
+   gl.activeTexture(gl.TEXTURE2);
+   gl.bindTexture( gl.TEXTURE_2D, texture );
+   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+   gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB,
+                 gl.RGB, gl.UNSIGNED_BYTE, image );
+   gl.generateMipmap( gl.TEXTURE_2D );
+   gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+                    gl.NEAREST_MIPMAP_LINEAR );
+   gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
+   gl.uniform1i(gl.getUniformLocation(program, "bumpTexture"), 2);
 }
 
-function loadImage(){
+function loadImage(bump){
+   bump = false || bump;
    image = new Image();
-   image.src = document.getElementById("imagesource").value;
-   image.onload = function() {
-      configureTexture( image );
+   image.crossOrigin="anonymous";
+   if(bump){
+      image.src=bumpOptions.val();
+      document.getElementById("bumpDiv").innerHTML="";
+      document.getElementById("bumpDiv").appendChild(image);
+   }else{
+      if(imageOptions.val()!="checkerboard"){
+      image.src = imageOptions.val();
       document.getElementById("imageDiv").innerHTML="";
       document.getElementById("imageDiv").appendChild(image);
-      changeCamera();
+      }
+   }
+   image.onload = function() {
+      if(bump){
+         configureBumpTexture(image);
+         
+      }else{
+      configureTexture( image );
+      
+      }
+      render();
    }
 }
