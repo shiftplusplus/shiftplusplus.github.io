@@ -180,9 +180,9 @@ latitudes=[];
 texCoordslats = [];
 var image;
 var texture;
-var camLat;
-var camLong;
-var camRad;
+//var camLat;
+//var camLong;
+//var camRad;
 var eye=vec3(1,1,1);
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(1,1,1); //try and change to be 90º from eye
@@ -191,15 +191,24 @@ var rotX;
 var rotY;
 var rotZ;
 
+var near;// = 0.3;
+var far;//= 10.0;
+var rad;// = 3.0;
+var theta;// = 0.0;
+var phi;// = 60.0;
+var dr = 5.0*Math.PI/180.0;
+var fovy;// = 120;
+var aspect;// = 1;
+
 window.onload = function init(){
    canvas = document.getElementById("gl-canvas");
 //   window.onresize = scaleCanvas;
 //   scaleCanvas();
    gl = WebGLUtils.setupWebGL(canvas, {preserveDrawingBuffer: true, alpha:false});
    if ( !gl ) { alert( "WebGL isn't available" ); }
-   camLat = new InputVar("camLat",changeCamera);
-   camLong = new InputVar("camLong",changeCamera);
-   camRad = new InputVar("camRad",changeCamera);
+//   camLat = new InputVar("camLat",changeCamera);
+//   camLong = new InputVar("camLong",changeCamera);
+//   camRad = new InputVar("camRad",changeCamera);
    
    rotX = new LinkedVar("rotX","rotX2",render);
    rotY = new LinkedVar("rotY","rotY2",render);
@@ -209,6 +218,14 @@ window.onload = function init(){
    checkerboard.val(true,false);
    mapping = new InputVar("mapping",render);
    mapping.val(false,false);
+   
+   near = new InputVar("near",render);
+   far = new InputVar("far",render);
+   rad = new InputVar("rad",render);
+   theta = new InputVar("theta",render);
+   phi = new InputVar("phi",render);
+   fovy = new InputVar("fovy",render);
+   aspect = new InputVar("aspect",render);
    
    program = initShaders( gl,"vertex-shader","fragment-shader");
    gl.useProgram(program);
@@ -276,7 +293,7 @@ function render(){
          if(mapping.val()!=true){
          texCoordslat.push(vec2(((lat+90)/180),(long+180)/360));
          }else{
-            texCoordslat.push(vec2(r*longs*latc,r*longc));
+            texCoordslat.push(vec2(r*longs*latc+.5,r*longc+.5));
          }
 //         latitude.push(" "+lat+" " +long);
          
@@ -322,9 +339,17 @@ function render(){
    gl.vertexAttribPointer( vCoord,2,gl.FLOAT,false,0,0);
    gl.enableVertexAttribArray(vCoord);
    
+   
+   eye = vec3(rad.val()*Math.sin(radians(theta.val()))*Math.cos(radians(phi.val())),
+              rad.val()*Math.sin(radians(theta.val()))*Math.sin(radians(phi.val())), rad.val()*Math.cos(radians(theta.val())));
+   
    viewMatrix = lookAt(eye, at , up);
    viewMatrixLoc = gl.getUniformLocation(program,"viewMatrix");
    gl.uniformMatrix4fv( viewMatrixLoc, false, flatten(viewMatrix) );
+   
+   projectionMatrix = perspective(fovy.val(), aspect.val(), near.val(), far.val());
+   projectionMatrixLoc = gl.getUniformLocation(program,"projectionMatrix");
+   gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
    
    thetaLoc = gl.getUniformLocation(program, "theta");
    gl.uniform3fv(thetaLoc, vec3(rotX.val(),rotY.val(),rotZ.val()));
@@ -367,14 +392,14 @@ function configureTexture( image ) {
 }
 
 function changeCamera(e){
-   var r = camRad.val();
-   var camLatR = deg2Rad(camLat.val());
-   var camLongR = deg2Rad(camLong.val());
-   var camLatS = Math.sin(camLatR);
-   var camLatC = Math.cos(camLatR);
-   var camLongS = Math.sin(camLongR);
-   var camLongC = Math.cos(camLongR);
-   eye=vec3(r*camLongS*camLatC,r*camLongC,r*camLongS*camLatS); //IMPLEMENT CAMERA MOVE (perspective - eye, at, up. Let up be 90º to eye if at all possible.
+//   var r = camRad.val();
+//   var camLatR = deg2Rad(camLat.val());
+//   var camLongR = deg2Rad(camLong.val());
+//   var camLatS = Math.sin(camLatR);
+//   var camLatC = Math.cos(camLatR);
+//   var camLongS = Math.sin(camLongR);
+//   var camLongC = Math.cos(camLongR);
+//   eye=vec3(r*camLongS*camLatC,r*camLongC,r*camLongS*camLatS); //IMPLEMENT CAMERA MOVE (perspective - eye, at, up. Let up be 90º to eye if at all possible.
    render();
 }
 
@@ -383,6 +408,8 @@ function loadImage(){
    image.src = document.getElementById("imagesource").value;
    image.onload = function() {
       configureTexture( image );
+      document.getElementById("imageDiv").innerHTML="";
+      document.getElementById("imageDiv").appendChild(image);
       changeCamera();
    }
 }
