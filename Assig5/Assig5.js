@@ -207,6 +207,8 @@ var dr = 5.0*Math.PI/180.0;
 var fovy;// = 120;
 var aspect;// = 1;
 
+var texture, bumpTexture, checkTexture;
+
 window.onload = function init(){
    canvas = document.getElementById("gl-canvas");
 //   window.onresize = scaleCanvas;
@@ -243,6 +245,10 @@ window.onload = function init(){
    gl.enable(gl.DEPTH_TEST);
    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
    gl.enable(gl.BLEND);
+   
+      texture = gl.createTexture();
+      bumpTexture = gl.createTexture();
+      checkTexture = gl.createTexture();
    
    generateCheckerboardImage();
    image = new Image();
@@ -307,9 +313,11 @@ function render(){
       for(var long =-180; long <=180; long+=increment){
          longc = Math.cos(deg2Rad(long));
          longs = Math.sin(deg2Rad(long));
-         latitude.push(vec4(r*longs*latc,r*longc,r*longs*lats,1.0));
+         latitude.push(vec4(r*longc*latc,r*longs*latc,r*lats,1.0));
+//         latitude.push(vec4(r*longc,r*longs*latc,r*lats*longs,1.0));
+//                  latitude.push(vec4(r*longs*latc,r*longc,r*longs*lats,1.0));
          if(mapping.val()!=true){
-         texCoordslat.push(vec2(-((long+180)/360),(lat+90)/180));
+            texCoordslat.push(vec2(-(long+180)/180,-(lat+90)/180));
          }else{
             texCoordslat.push(vec2(r*longs*latc+.5,r*longc+.5));
          }
@@ -392,9 +400,10 @@ function scaleCanvas(){
 
 
 function configureCheckTexture( image ){
-   var texture = gl.createTexture();
+   
+   
    gl.activeTexture(gl.TEXTURE1);
-   gl.bindTexture( gl.TEXTURE_2D, texture);
+   gl.bindTexture( gl.TEXTURE_2D, checkTexture);
    gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true);
    gl.texImage2D( gl.TEXTURE_2D,0,gl.RGBA, 512,512,0, gl.RGBA, gl.UNSIGNED_BYTE, image);
    gl.generateMipmap( gl.TEXTURE_2D);
@@ -407,7 +416,7 @@ function configureCheckTexture( image ){
 
 
 function configureTexture( image ) {
-   texture = gl.createTexture();
+
    gl.activeTexture(gl.TEXTURE0);
    gl.bindTexture( gl.TEXTURE_2D, texture );
    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -421,9 +430,9 @@ function configureTexture( image ) {
 }
 
 function configureBumpTexture( image ) {
-   texture = gl.createTexture();
+   
    gl.activeTexture(gl.TEXTURE2);
-   gl.bindTexture( gl.TEXTURE_2D, texture );
+   gl.bindTexture( gl.TEXTURE_2D, bumpTexture );
    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
    gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB,
                  gl.RGB, gl.UNSIGNED_BYTE, image );
