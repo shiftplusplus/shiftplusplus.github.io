@@ -317,7 +317,7 @@ function render(){
 //         latitude.push(vec4(r*longc,r*longs*latc,r*lats*longs,1.0));
 //                  latitude.push(vec4(r*longs*latc,r*longc,r*longs*lats,1.0));
          if(mapping.val()!=true){
-            texCoordslat.push(vec2(-(long+180)/180,-(lat+90)/180));
+            texCoordslat.push(vec2(-(long+180)/360,-(lat+90)/180));
          }else{
             texCoordslat.push(vec2(r*longs*latc+.5,r*longc+.5));
          }
