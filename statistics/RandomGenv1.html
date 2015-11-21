@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Pronounceable Random Word Generator (v1)</title>
+      <script src="jquery.min.js"></script>
+      <script type="text/javascript">
+         function InputVar(id, change){
+            this.id=id;
+            if(id){
+               this.element = document.getElementById(id);
+               
+               if(this.element==null){ //radio button?
+                  this.radio = true;
+                  this.radioElements = document.getElementsByName(id);
+                  this.radios=[];
+                  for(var i=0; i<this.radioElements.length; i++){
+                     this.radios.push(this.radioElements[i].value);
+                     if(this.radioElements[i].checked){
+                        this.v = this.radios[i];
+                     }
+                  }
+               }else if(this.element.type=="select-one"){ //select with options
+                  this.select = true;
+                  this.options = this.element.options;
+                  if(this.element.selectedIndex ==-1){
+                     this.element.selectedIndex == 0;
+                  }
+                  //         if(this.element.selectedIndex !=-1){
+                  try{this.v=this.options[this.element.selectedIndex].value;}
+                  catch(e){
+                     //            console.warn(e,this);
+                     this.v = null;
+                  }
+               }
+               this.val = function(x,callChange){
+                  if(x!==undefined){ //set
+                     if(this.element && this.element.type == "checkbox"){
+                        this.element.checked = x;
+                     }else if(this.radio){
+                        for(var i=0;i<this.radios.length; i++){
+                           if(this.radios[i]==x){
+                              this.v=x;
+                              this.radioElements[i].checked=true;
+                              var found = true;
+                              break;
+                           }
+                        }
+                        if(!found){
+                           //                  console.warn("No Radio Button in group "+this.id+" has the value "+x+"; creating new radio button in parent of and before the first.");
+                           var newRad = document.createElement('input');
+                           newRad.type = "radio";
+                           newRad.name = this.id;
+                           newRad.value = x;
+                           newRad.checked = true;
+                           newRad.onchange = onupdate;
+                           this.radioElements[0].parentNode.insertBefore(newRad,this.radioElements[0]);
+                           this.radioElements = document.getElementsByName(this.id);
+                           this.radios.unshift(x);
+                           this.v=x;
+                        }
+                     }else if(this.select){
+                        for(var i=0;i<this.options.length; i++){
+                           if(this.options[i].value == x){
+                              this.v = this.options[i].value;
+                              this.element.selectedIndex=i;
+                              var found = true;
+                           }
+                        }
+                        if(!found){
+                           //                  console.warn("No option in select "+this.id+" has the value "+x+"; creating option at the end.")
+                           var newOption = document.createElement('option');
+                           newOption.value=x;
+                           newOption.text=x.toString();
+                           this.element.add(newOption);
+                           this.options = this.element.options;
+                           
+                        }
+                     }else{
+                        this.element.value=x;
+                     }
+                     if(this.element.type!="checkbox" && !isNaN(Number(x))){
+                        this.v=Number(x);
+                     }else{
+                        this.v = x;
+                     }
+                     if(this.change != null&&callChange!=false){
+                        this.change(this);
+                     }
+                     return this.v;
+                  }else{ //get
+                     if(this.v== undefined){
+                        this.v = this.element.value;
+                     }
+                     return this.v;
+                  }
+               }
+               var x=this;
+               this.onupdate =function(){
+                  if(this.type == "checkbox"){
+                     x.val(this.checked);
+                  }else{
+                     x.val(this.value);
+                  }
+                  
+               };
+               if(this.radio){
+                  for(var i=0;i<this.radioElements.length;i++){
+                     this.radioElements[i].onchange = this.onupdate;
+                  }
+               }else{
+                  this.element.onchange = this.onupdate;
+                  this.element.onpaste = this.onupdate;
+                  //this.element.onkeyup = this.onupdate;
+               }
+               
+               
+            }else{
+               this.val = function(x){
+                  if(x || this.v==undefined){ //set
+                     if(x){
+                        this.v = x;
+                     }else{
+                        this.v = this.element.value;
+                        if(this.element.type==checkbox){
+                           this.v = this.element.checked;
+                        }
+                     }
+                     if(this.change != null){
+                        this.change(this);
+                     }
+                  }else{ //get
+                     if(this.element.type==checkbox){
+                        this.v = this.element.checked;
+                     }
+                     return this.v;
+                  }
+               }
+            }
+            if(!change){
+               this.change= null;
+            }else{
+               this.change=change;
+            }
+            this.v = this.val();
+            this.string = "InputVar";
+            this.toString = function(){
+               this.string.value = this;
+               return this.string;
+            }
+            return this;
+         }
+      function LinkedVar(id1,id2,change){
+         
+         this.change= change;
+         var linker = this;
+         this.link = function(e){
+            if(e==linker.first){
+               linker.second.val(linker.first.val(),false);
+            }else{
+               linker.first.val(linker.second.val(),false);
+            }
+            if(linker.change!=undefined){
+               linker.change(e);
+            }
+         };
+         this.first =new InputVar(id1,this.link);
+         this.second = new InputVar(id2,this.link);
+         this.val = function(x,y){
+            y=y||true;
+            if(x){
+               return this.first.val(x,y);
+            }else{
+               return this.first.val();
+            }
+         }
+         
+      }
+      </script>
+      <script type="text/javascript">
+         vowels = "aeiou".split("");
+         consonants = "qwrtypsdfghjklzxcvbnm".split("");
+         symbols = "!@#$%^&*()_+-=[]{}\\|'\";:/?.>,<`~".split("");
+         separators = " -=*/\\".split("");
+         digits = "1234567890".split("");
+         letters = vowels.concat(consonants); //Any letter
+         vowels = vowels.concat("yw".split(""));
+         characters = letters.concat(symbols,[" "],digits);//Any character
+         xVowels = [].concat(vowels);//An extended vowel
+         for(var i = 0; i<6; i++){ //Make controlled vowels for a-y. No "wr" vowel.
+            xVowels.push(vowels[i]+"r");
+            //Digraph time!
+            if (vowels[i] == "a" || vowels[i] =="o"){ //A's and O's
+               for(var j = 0; j<5; j++){              //combine with aeiou
+                  xVowels.push(vowels[i]+vowels[j]);
+               }
+            } else if(vowels[i] == "i" || vowels[i] == "u"){ //I's and U's
+               for(var j = 1; j<3; j++){                     //combine with ei
+                  xVowels.push(vowels[i]+vowels[j]);
+               }
+            }else if(vowels[i] == "e"){ //E's
+               for(var j = 0; j<5; j++){ //combine with aeiu
+                  if(j!=3){ //skip o
+                     xVowels.push(vowels[i]+vowels[j]);
+                  }
+               }
+            }
+         }
+         xConsonants = [].concat(consonants,["ch","wh","th","ph","sh","gh","st","squ"]);//An extended consonant
+         eConsonants = [].concat(xConsonants,["pt","ft","ct","lt","rr","ll","zz","ss","ff","sque"]); //Ending consonant
+         l = xConsonants.length;
+         for(var i=0; i<l; i++){
+            //Digraph time! Adding r's
+            if(xConsonants[i]!="q" && xConsonants[i]!="r" && xConsonants[i]!="l" && xConsonants[i]!="z" &&xConsonants[i]!="s" && xConsonants[i]!="y" && xConsonants[i]!="h" && xConsonants[i]!="j" && xConsonants[i]!="n" && xConsonants[i]!="m" && xConsonants[i]!="x" && xConsonants[i]!="wh" && xConsonants[i]!="gh" && xConsonants[i]!="pt" && xConsonants[i]!="ft" && xConsonants[i]!="ct" && xConsonants[i]!="lt"){
+               xConsonants.push(xConsonants[i]+"r");
+            }
+            if(xConsonants[i]=="q"){
+               xConsonants.push("qu");
+            }
+            
+         }
+      xConsonants.unshift("");
+      //The following are too big to be statically generated:
+      //An open syllable = \x\w = 54*31 options = 1674 strings
+      //A closed syllable = \x\w\x = 54*31*54 options = 90396 strings
+      //A syllable = sum of the above = 92070 strings
+      
+      
+         window.onload = function init(){
+            pattern = new InputVar("pattern",generate);
+            iterations = new InputVar("iterations",generate);
+         }
+      function rchoose(arr){
+         return arr[Math.floor((Math.random() * arr.length))];
+      }
+      function save(){
+         console.log("save");
+         $("#retain").append($("#output").html());
+      }
+      function output_clear(){
+         $("#output").html("<i>Output</i>");
+      }
+      function capitalize(strn){
+         first = strn.substring(0,1).toUpperCase();
+         rest = strn.substring(1,1000);
+         return first+rest;
+      }
+      function generate(){
+         if (typeof(pattern.val())!="string" ){
+            pattern.val("\\n");
+         }
+         patternArray = pattern.val().split("");
+         flag = false;
+         last = "";
+         b = "\\";
+         outputs = []; //.join() it before printing
+         for (var i=0; i<iterations.val(); i++){
+            result = "";
+            for (var j = 0; j<patternArray.length; j++){
+               if (patternArray[j] == "\\"){
+                  flag = true;
+                  //break;
+               }else if(flag){
+                  switch(patternArray[j]){
+                     //case "\\": //Backslash
+                     // result += "&#92;";
+                     // console.log(result);
+                     // flag = false;
+                     // break;
+                     
+                     case "n": //Any letter
+                        result += rchoose(letters);
+                        flag = false;
+                        break;
+                        case "h": //Any character
+                        result += rchoose(characters);
+                        flag = false;
+                        break;
+                        case "v": // A vowel
+                        result += rchoose(vowels);
+                        flag = false;
+                        break;
+                        case "w": // An extended vowel
+                        result += rchoose(xVowels);
+                        flag = false;
+                        break;
+                        case "c": // A consonant
+                        result += rchoose(consonants);
+                        flag = false;
+                        break;
+                        case "x": // An extended consonant
+                        result += rchoose(xConsonants);
+                        flag = false;
+                        break;
+                        case "e": // An ending consonant
+                        result += rchoose(eConsonants);
+                        flag = false;
+                        break;
+                        case "s": // A syllable = either \o or \l
+                        result += rchoose(xConsonants);
+                        result += rchoose(xVowels);
+                        if(Math.random()>0.3){ //closed syllable
+                           result += rchoose(xConsonants);
+                        }
+                        flag = false;
+                        break;
+                        case "o": // An open syllable = \x\w
+                        result += rchoose(xConsonants);
+                        result += rchoose(xVowels);
+                        flag = false;
+                        break;
+                        case "l": // A closed syllable = \x\w\e
+                        result += rchoose(xConsonants);
+                        result += rchoose(xVowels);
+                        result += rchoose(eConsonants);
+                        flag = false;
+                        break;
+                        case "d": // A digit
+                        result += rchoose(digits);
+                        flag = false;
+                        break;
+                        case "y": // A symbol
+                        result += rchoose(symbols);
+                        flag = false;
+                        break;
+                        case "p": // A separator
+                        result += rchoose(separators);
+                        flag = false;
+                        break;
+                        case "N": //Any capitalized letter
+                           result += capitalize(rchoose(letters));
+                           flag = false;
+                           break;
+                        case "V": // A capitalized vowel
+                           result += capitalize(rchoose(vowels));
+                           flag = false;
+                           break;
+                        case "W": // An capitalized extended vowel
+                           result += capitalize(rchoose(xVowels));
+                           flag = false;
+                           break;
+                        case "C": // A capitalized consonant
+                           result += capitalize(rchoose(consonants));
+                           flag = false;
+                           break;
+                        case "X": // A capitalized extended consonant
+                           result += capitalize(rchoose(xConsonants));
+                           flag = false;
+                           break;
+                        case "S": // A capitalized syllable = either \O or \L
+                           result += capitalize(rchoose(xConsonants));
+                           result += rchoose(xVowels);
+                           if(Math.random()>0.3){ //closed syllable
+                              result += rchoose(xConsonants);
+                           }
+                           flag = false;
+                           break;
+                        case "O": // An open syllable = \x\w, with first letter capitalized
+                           result += capitalize(rchoose(xConsonants));
+                           result += rchoose(xVowels);
+                           flag = false;
+                           break;
+                        case "L": // A closed syllable = \x\w\x , with first letter capitalized
+                           result += rchoose(xConsonants);
+                           result += rchoose(xVowels);
+                           result += rchoose(xConsonants);
+                           flag = false;
+                           break;
+                     
+                     default:
+                        result += patternArray[j];
+                        flag = false;
+                        break;
+                  }
+               }else{
+                  result += patternArray[j];
+               }
+            }
+            flag = false;
+            outputs.push(result);
+         }
+         $("#output").append("<br />",outputs.join("<br />\n"));
+      }
+      </script>
+      <style type="text/css">
+         * {
+            font-family: "Avenir Next", "Helvetica Neue", "sans-serif";
+         }
+      .left {
+         width: 30%;
+         float:left;
+         clear:left;
+      }
+      .right {
+         width: 60%;
+         float: right;
+         clear: right;
+      }
+      #directions {
+         width: 90%;
+         float: left;
+         clear: both;
+      }
+      </style>
+   </head>
+   <body>
+      <h1>Pronounceable Random Word Generator<span style="font-size: 0.5em"> v1.0</span></h1>
+      <div class="left">
+      <p>
+         <label for="pattern">Pattern</label>
+         <input type="text" id="pattern" placeholder="\v\c\s\d\y\p"></input>
+         <button onclick="generate();">Generate</button>
+         <br></br>
+         <label for="iterations">Versions</label>
+         <input type="number" min="1" max="100" step="5" value="10" id="iterations"></input>
+      </p>
+      </div>
+      <div class="right">
+         <div class="left">
+         <p id="output">
+         <i>Output</i>
+                  </p>
+         <button onclick="save();">Add all to notes</button>
+         <button onclick="output_clear();">Clear</button>
+         </div>
+         <textarea id="retain" rows="20" cols="30" class="right">
+            (Notes)
+         </textarea>
+      </div>
+      <div id="directions">
+      <p>To use, type a pattern into the Pattern box. Normal text will be used as is, but the following flags are available:
+         <ul>
+            <li><b>\n</b> Any letter (1/26)</li>
+            <li><b>\h</b> Any character (1/69)</li>
+            <li><b>\v</b> A vowel (1/7)</li>
+            <li><b>\w</b> An extended vowel (includes digraphs and controlled vowels) (1/31)</li>
+            <li><b>\c</b> A consonant (1/21)</li>
+            <li><b>\x</b> An extended consonant (includes digraphs and even nothing) (1/!!!)</li>
+            <li><b>\e</b> An ending consonant (includes digraphs and even nothing) (1/!!!)</li>
+            <li><b>\s</b> A syllable (1/!!! - dynamically generated as equal to \w\x or \w\x\e)</li>
+            <li><b>\o</b> An open syllable (1/!!! - dynamically generated as equal to \w\x)</li>
+            <li><b>\l</b> A closed syllable (1/!!! - dynamically generated as equal to \w\x\e)</li>
+            <li><b>\d</b> A digit (1/10)</li>
+            <li><b>\y</b> A symbol (1/32)</li>
+            <li><b>\p</b> A separator (1/8)</li>
+            <li><b>\N</b> A capitalized letter</li>
+            <li><b>\V</b> A capitalized vowel</li>
+            <li><b>\W</b> A capitalized extended vowel</li>
+            <li><b>\C</b> A capitalized consonant</li>
+            <li><b>\X</b> A capitalized extended consonant</li>
+            <li><b>\S</b> A capitalized syllable</li>
+            <li><b>\O</b> A capitalized open syllable</li>
+            <li><b>\L</b> A capitalized closed syllable</li>
+         <ul>
+      </p>
+	<p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">Pronounceable Random Word Generator</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Carson A. Elmore Jr.</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</p>
+      </div>
+</body>
+</html>
