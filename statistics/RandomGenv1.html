@@ -210,7 +210,7 @@
          l = xConsonants.length;
          for(var i=0; i<l; i++){
             //Digraph time! Adding r's
-            if(xConsonants[i]!="q" && xConsonants[i]!="r" && xConsonants[i]!="l" && xConsonants[i]!="z" &&xConsonants[i]!="s" && xConsonants[i]!="y" && xConsonants[i]!="h" && xConsonants[i]!="j" && xConsonants[i]!="n" && xConsonants[i]!="m" && xConsonants[i]!="x" && xConsonants[i]!="wh" && xConsonants[i]!="gh" && xConsonants[i]!="pt" && xConsonants[i]!="ft" && xConsonants[i]!="ct" && xConsonants[i]!="lt"){
+            if(xConsonants[i]!="q" && xConsonants[i]!="r" && xConsonants[i]!="l" && xConsonants[i]!="z" &&xConsonants[i]!="s" && xConsonants[i]!="y" && xConsonants[i]!="h" && xConsonants[i]!="j" && xConsonants[i]!="n" && xConsonants[i]!="m" && xConsonants[i]!="x" && xConsonants[i]!="wh" && xConsonants[i]!="gh" && xConsonants[i]!="pt" && xConsonants[i]!="ft" && xConsonants[i]!="ct" && xConsonants[i]!="lt" && xConsonants[i]!="squ"){
                xConsonants.push(xConsonants[i]+"r");
             }
             if(xConsonants[i]=="q"){
@@ -223,6 +223,7 @@
       //An open syllable = \x\w = 54*31 options = 1674 strings
       //A closed syllable = \x\w\x = 54*31*54 options = 90396 strings
       //A syllable = sum of the above = 92070 strings
+	//NOTE: The code has been edited since those numbers were first generated and they are no longer correct. The only statistics I am maintaining as correct are at the bottom of the HTML page.
       
       
          window.onload = function init(){
@@ -434,7 +435,7 @@
             <li><b>\v</b> A vowel (1/7)</li>
             <li><b>\w</b> An extended vowel (includes digraphs and controlled vowels) (1/31)</li>
             <li><b>\c</b> A consonant (1/21)</li>
-            <li><b>\x</b> An extended consonant (includes digraphs and even nothing) (1/47)</li>
+            <li><b>\x</b> An extended consonant (includes digraphs and even nothing) (1/46)</li>
             <li><b>\e</b> An ending consonant (includes digraphs and even nothing) (1/39)</li>
             <li><b>\s</b> A syllable (dynamically generated as equal to \w\x (30%)or \w\x\e (70%))</li>
             <li><b>\o</b> An open syllable (1/1457 - dynamically generated as equal to \w\x)</li>
