@@ -1,8 +1,10 @@
 ---
-title: "Using Statistical Analysis to Improve a Random Word Generator"
+title: "Using Statistical Analysis to Improve a Random Name Generator"
 author: "Carson A. Elmore Jr."
 date: "November 21, 2015"
-output: html_document
+output:
+    html_document:
+        mathjax: default
 theme: cerulean
 ---
 ###Introduction
@@ -13,7 +15,7 @@ I recently wrote a [program](http://shiftplusplus.github.io/statistics/RandomGen
 ###Formula
 
 #### Setup
-The original Random Word Generator uses static lists of vowels, consonants, and equivalent blends and digraphs to dynamically generate syllables using a regular-expression interpreter.
+The original Random Name Generator uses static lists of vowels, consonants, and equivalent blends and digraphs to dynamically generate syllables using a regular-expression interpreter.
 The program begins by establishing constants for vowels and consonants (as defined in English), along with other symbol groups.
 ```{r}
 vowels <- unlist(strsplit("aeiou",""))
@@ -154,6 +156,7 @@ summary(c(xlengths,vlengths,elengths))
 hist(c(xlengths,vlengths,elengths))
 boxplot(xlengths,vlengths,elengths,c(xlengths,vlengths,elengths), names=c("Extended consonants", "Extended Vowels", "Ending consonants","Combined"))
 ```
+
 At present the selection of extended consonants and vowels gives an equal chance to every item. We can see a slightly higher chance of any given component being more than two letters, but this is offset somewhat by the 30% chance of the generator producing an open syllable (one that ends with a vowel.)
 
 ### Comparison with Real English Words
@@ -161,10 +164,12 @@ At present the selection of extended consonants and vowels gives an equal chance
 #### Hypothesis
 How then does this compare to real words? Can we use a sample of English words to improve the formula to produce output that looks more like English? Cryptanalysis efforts have produced a wide understanding of character frequency counts in verious languages, so can we apply similar techniques to see how syllables are structured?
 
+To accomplish this I have taken a sample of real English words, broken them down into syllables, and then used statistical inference to find the proportion of blends and single letters used in a "\\x\\w\\e" syllable system. This proportion will then be used to refine the random picker.
+
 #### Data
 
 ##### Collection
-The reference set of English words is pulled by a random sample of pages taken from *The American Heritage College Dictionary, 4th Edition*. 30 pages were selected from the dictionary section (pages 1-1596) without replacement using R's sample function. [^3] The entry words from the first column were divided into syllables and each syllable entered onto a CSV file along with variables indicating its relative location in the word. Entries consisting of multiple words were treated as separate words. Acronyms and abbreviations were omitted, and occasionally there were words pronounced as one syllable (eg. "blitzed") that were entered as two to fit the "\\x\\w\\e" syllable system. If a syllable contained a silent "e" after the second consonant this was also noted.
+The reference set of English words is pulled by a random sample of pages taken from *The American Heritage College Dictionary, 4th Edition*. 30 pages were selected from the dictionary section (pages 1-1596) without replacement using R's sample function. [^3] The entry words from the first column were divided into syllables and each syllable entered onto a CSV file along with variables indicating its relative location in the word. Entries consisting of multiple words were treated as separate words. Acronyms and abbreviations were omitted, and occasionally there were words pronounced as one syllable (eg. "blitzed") that were entered as two to fit the "\\x\\w\\e" syllable system. Otherwise, a syllable containing a silent "e" or "ue" after the second consonant had that noted in a separate column, while possessives and regular plurals with a separate entry or as part of a compound word were reverted to singular form. There was one word "Mahilyow", that could not be forced into this format, and therefore the alternate form "Mogilev" was used.
 
 [^3]: The pages' guide words, along with a page of the data are printed in Appendix 2.
 ```{r}
@@ -172,10 +177,194 @@ pages <- sample(1:1596,30)
 print(pages)
 
 dictionary <- read.table("dictionary.csv",header=TRUE,sep=",")
+#Convert factors to characters
+i <- sapply(dictionary, is.factor)
+dictionary[i] <- lapply(dictionary[i], as.character)
 tail(dictionary)
 ```
 
+#####Scope
+These 2007 syllables from `r sum(table(dictionary$syllables) / 1:6)` words represent less than 10% of English words. The sample includes words from all the common English roots (including old English/ Old High German, Greek, Latin, French, Spanish, Arabic, Norse, and Sanskrit). Inferences are generalizable to the target population of English words as a whole, but it would be foolish to attempt claims of causality without blocking for various etymological factors.
 
+####Exploratory Data Analysis
+
+We are looking for general characteristics of syllables in English words, and also to see if there is a relationship between these syllables and their position in the word.
+
+#####Syllable composition
+
+```{r}
+dictionary$len_start_cons <- as.factor(nchar(dictionary$start_cons))
+dictionary$len_vowel <- as.factor(nchar(dictionary$vowel))
+dictionary$len_end_cons <- as.factor(nchar(dictionary$end_cons))
+dictionary$len_silent_e <- as.factor(nchar(dictionary$silent_e))
+prop.table(table(dictionary$len_start_cons))
+prop.table(table(dictionary$len_vowel))
+prop.table(table(dictionary$len_end_cons))
+prop.table(table(dictionary$len_silent_e))
+```
+
+We can see that in major contrast to the randomly generated syllables, the use of blends is fairly rare. Consonant blends account for about 14% of starting consonants and about 12% of ending consonants. Controlled vowels and vowel blends are used less than 11% of the time, and very few of those were three letters long.
+
+```{r}
+prop.table(table(xlengths))
+prop.table(table(vlengths))
+prop.table(table(elengths))
+```
+In comparison, nearly half the generator's "extended" and "ending"" consonants and over three quarters of the "extended vowels" were composed of 2 or more letters. This is a clear opportunity for improvement.
+
+#####Syllables by location
+
+But is there a relation between syllable structures and their position in the word?
+
+To see this, lets create another column containing the types of syllables,
+
+```{r}
+classify <- function(x){
+    #Classify each syllable into open, closed front, closed end, and closed
+#     levels = 0:3
+#     labels = c( "open","closed.front", "closed.end", "closed"))
+    class <- 0
+    if (x['len_start_cons']>0) {
+        class <- 1 #closed.front
+        if (x['len_end_cons'] > 0) {
+            class <- 3 #closed
+        }
+    }else if(x['len_end_cons'] > 0){
+        class <- 2 #closed.end
+    }
+    return(class)
+
+}
+
+dictionary$class <- factor(apply(dictionary[1:nrow(dictionary),], 1, classify), levels = 0:3, labels = c( "open","closed.front", "closed.end", "closed"))
+head(dictionary)
+```
+
+and take a mosaic plot comparing the syllable type to the location as measured from the front of the word.
+
+```{r}
+mosaicplot(table(dictionary$class,dictionary$location_front),xlab="Syllable type", ylab="Location")
+```
+
+Reading this plot, we see that about half the syllables are closed, but most of these are in the first syllable of the word. This is a situation of interest as this could be influenced by the number of one-syllable words. (`r
+sum(dictionary$syllables==1) `)
+
+Another situation of interest is the very small incidence of vowel-only syllables in the first syllable of a word.
+
+Repeating the mosaic plot on only polysyllabic words failed to produce a drastic visible change.
+```{r}
+polys <- subset(dictionary,syllables>1)
+mosaicplot(table(polys$class,polys$location_front),xlab="Syllable type", ylab="Location")
+```
+
+
+What about when considering the syllable's position relative to the end of the word?
+
+```{r}
+mosaicplot(table(dictionary$class,dictionary$syllables - dictionary$location_front),xlab="Syllable type", ylab="Location from end")
+```
+
+Another situation of interest is the large jump in closed-ended ending syllables.
+
+```{r}
+mosaicplot(table(polys$class,polys$syllables-polys$location_front),xlab="Syllable type", ylab="Location from end")
+
+```
+
+Repeating this on polysyllable words likewise had no drastic effect.
+
+While these findings could bear investigation, for the purposes of the random name generator the relationship between the syllable's location and its type is too weak to be of interest.
+
+####Inference
+
+We are looking for two things: the true proportions of the various syllable classes and of digraphs.
+
+#####Syllable classes
+
+Using the DASI inference function, we can establish a confidence interval for each class individually.
+
+```{r}
+source("http://bit.ly/dasi_inference")
+#Create columns recoded into 2 levels for a proportion CI
+dictionary$open[dictionary$class=="open"]<-"open"
+dictionary$open[dictionary$class!="open"]<-"not"
+inference(y=dictionary$open,est='proportion',type="ci",method="theoretical", success="open", eda_plot=FALSE)
+
+dictionary$closed.front[dictionary$class=="closed.front"]<-"closed.front"
+dictionary$closed.front[dictionary$class!="closed.front"]<-"not"
+inference(y=dictionary$closed.front,est='proportion',type="ci",method="theoretical", success="closed.front", eda_plot=FALSE)
+
+dictionary$closed.end[dictionary$class=="closed.end"]<-"closed.end"
+dictionary$closed.end[dictionary$class!="closed.end"]<-"not"
+inference(y=dictionary$closed.end,est='proportion',type="ci",method="theoretical", success="closed.end", eda_plot=FALSE)
+
+dictionary$closed[dictionary$class=="closed"]<-"closed"
+dictionary$closed[dictionary$class!="closed"]<-"not"
+inference(y=dictionary$closed,est='proportion',type="ci",method="theoretical", success="closed", eda_plot=FALSE)
+```
+
+We are 95% confident that the true proportion of syllables in English words are distributed with:
+
+* between 7.9 and 10.4 % open
+* between 22.9 and 26.7% closed in front
+* between 11.5 and 14.5% closed at the end, and
+* between 50.9 and 55.3% closed on both sides.
+
+#####Digraphs
+
+Likewise we can obtain a confidence interval for the use of digraphs in each section of the syllable. For the tests we need to limit our data to syllables containing the part of interest.
+
+```{r}
+fronts <- subset(dictionary, len_start_cons!=0, select=c(len_start_cons))
+fronts$length[fronts$len_start_cons!=1]<-"digraph"
+fronts$length[fronts$len_start_cons==1]<-"single"
+inference(y=fronts$length,est='proportion',type="ci",method="theoretical", success='single', eda_plot=FALSE)
+
+vowels <- subset(dictionary, len_vowel!=0, select=c(len_vowel))
+vowels$length[vowels$len_vowel!=1]<-"digraph"
+vowels$length[vowels$len_vowel==1]<-"single"
+inference(y=vowels$length,est='proportion',type="ci",method="theoretical", success='single', eda_plot=FALSE)
+
+ends <- subset(dictionary, len_end_cons!=0, select=c(len_end_cons))
+ends$length[ends$len_end_cons!=1]<-"digraph"
+ends$length[ends$len_end_cons==1]<-"single"
+inference(y=ends$length,est='proportion',type="ci",method="theoretical", success='single', eda_plot=FALSE)
+
+```
+
+We are 95% confident that the true proportion of non-digraph sounds in English words are distributed with:
+
+* between 80.1 and 83.9 % single opening consonants
+* between 87.7 and 90.5% single vowels, and
+* between 80.3 and 84.4% single ending consonants.
+
+A procedural algorithm for generating syllables from this pattern should be able to work through the syllable from front to back, so we also need to obtain the proportion of fully closed syllables given a closed front. Since these variables are dependent we use Baye's Theorem:
+
+$$P(A | B) = P(A & B)/P(B)$$
+
+$$P(both | front) = P(both & front)/P(front)$$
+
+$$P(both | front) = P(front)* P(front|both)/P(front)$$
+
+
+```{r}
+dictionary$all_closed_front[dictionary$len_start_cons != 0]<-"closed.front"
+dictionary$all_closed_front[dictionary$len_start_cons == 0 ]<-"open.front"
+#head(dictionary)
+inference(y=dictionary$all_closed_front,est='proportion',type="ci",method="theoretical", success="closed.front", eda_plot=FALSE)
+```
+
+The expected proportion of all syllables with a closed front is between about 77.9%, and the proportion of all closed syllables is about 53.1%. The probability of a syllable having a closed front given being closed on both sides is 1, so plugging in yields
+
+$$P(both | front) = P(front)* 1/P(front)$$
+
+=1?
+
+###Revising the Random Name Generator
+
+
+
+###Conclusion
 
 ### Appendices
 
@@ -200,7 +389,7 @@ The following pages were sampled from The American Heritage (R) College Dictiona
  * 1583: writer - wyvern
  * 107: bailor - bald cypress
  * 229: Catoctin Mountains - cause
- * 337: crimp$$^2$$ - critique
+ * 337: crimp$^2$ - critique
  * 1547: warthog - wast
  * 287: comforter - commensurate
  * 236: cerebroside - cervine
@@ -219,7 +408,7 @@ The following pages were sampled from The American Heritage (R) College Dictiona
  * 833: maguey - mailbox
  * 1: a - abandoned *(The opening page of a letter's section does not include printed guide words.)*
  * 118: base pair - Basque
- * 1269: set$$^2$$ - seven
+ * 1269: set$^2$ - seven
  * 201: cable television - -cade
  * 1441: Tyllich - timeous
  * 1134: putamen - pycnogonid
