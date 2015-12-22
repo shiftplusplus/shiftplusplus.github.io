@@ -338,13 +338,13 @@ We are 95% confident that the true proportion of non-digraph sounds in English w
 * between 87.7 and 90.5% single vowels, and
 * between 80.3 and 84.4% single ending consonants.
 
-A procedural algorithm for generating syllables from this pattern should be able to work through the syllable from front to back, so we also need to obtain the proportion of fully closed syllables given a closed front. Since these variables are dependent we use Baye's Theorem:
+A procedural algorithm for generating syllables from this pattern should be able to work through the syllable from front to back, so we also need to obtain the proportion of fully closed syllables given a closed front. Since these variables are dependent we use Bayes' Theorem:
 
 $$P(A | B) = P(A & B)/P(B)$$
 
-$$P(both | front) = P(both & front)/P(front)$$
+$$P(end | front) = P(end & front)/P(front)$$
 
-$$P(both | front) = P(front)* P(front|both)/P(front)$$
+$$P(end | front) = P(both)/P(front)$$
 
 
 ```{r}
@@ -354,14 +354,107 @@ dictionary$all_closed_front[dictionary$len_start_cons == 0 ]<-"open.front"
 inference(y=dictionary$all_closed_front,est='proportion',type="ci",method="theoretical", success="closed.front", eda_plot=FALSE)
 ```
 
-The expected proportion of all syllables with a closed front is between about 77.9%, and the proportion of all closed syllables is about 53.1%. The probability of a syllable having a closed front given being closed on both sides is 1, so plugging in yields
+The expected proportion of all syllables with a closed front is between about 77.9%, and the proportion of fully closed syllables is about 53.1%. Plugging in yields
 
-$$P(both | front) = P(front)* 1/P(front)$$
-
-=1?
+$$P(end | front) = .531/.779 = 68.2%$$
 
 ###Revising the Random Name Generator
 
+With this information, we can now improve the syllable generation function. Syllable classes will be determined using the estimated population proportions in a linear fashion, and blends will be kept in a separate set from the single consonants and vowels. We will no longer be needing a separate ending consonant set.
+
+```{r}
+#This is modified xVowel generation code, no longer including the single vowels or y and w
+vowels <- unlist(strsplit("aeiou",""))
+dVowels <- vector()
+for(i in 1:5){ #Make controlled vowels for a-u.
+    dVowels <- c(dVowels, paste(vowels[i],"r",sep=""))
+    #Digraph time!
+    if (vowels[i] == "a" || vowels[i] =="o"){ #A's and O's
+        for(j in 1:5){ #combine with aeiou
+            dVowels <- c(dVowels,paste(vowels[i],vowels[j], sep=""))
+            }
+        } else if(vowels[i] == "i" || vowels[i] == "u"){ #I's and U's
+            for(j in 2:3){ #combine with ei
+                dVowels <- c(dVowels,paste(vowels[i],vowels[j], sep=""))
+                }
+            }else if(vowels[i] == "e"){ #E's
+                for(j in 1:5){ #combine with aeiu
+                    if(j!=4){ #skip o
+                        dVowels <- c(dVowels,paste(vowels[i],vowels[j], sep=""))
+                        }
+                    }
+                }
+    }
+
+dConsonants = c(consonants,"ch","wh","th","ph","sh","gh","st","squ")#An extended consonant
+eConsonants = c(dConsonants,"pt","ft","ct","lt","rr","ll","zz","ss","ff","sque") #Ending consonant
+l = length(dConsonants)
+for(i in 1:l){
+            #Digraph time! Adding r's
+            if(dConsonants[i]!="q" && dConsonants[i]!="r" && dConsonants[i]!="l" && dConsonants[i]!="z" &&dConsonants[i]!="s" && dConsonants[i]!="y" && dConsonants[i]!="h" && dConsonants[i]!="j" && dConsonants[i]!="n" && dConsonants[i]!="m" && dConsonants[i]!="x" && dConsonants[i]!="wh" && dConsonants[i]!="gh" && dConsonants[i]!="pt" && dConsonants[i]!="ft" && dConsonants[i]!="ct" && dConsonants[i]!="lt" && dConsonants[i]!="squ"){
+               dConsonants <- c(dConsonants, paste(dConsonants[i],"r",sep=""))
+            }
+            #Not all q's need u's, but some should have them
+            if(dConsonants[i]=="q"){
+               dConsonants <- c(dConsonants,"qu")
+            }
+            
+         }
+#We no longer need to include an empty string as a consonant.
+
+```
+
+And the revised syllable function:
+
+```{r}
+syllableV2 <- function(){
+    # \s Revised to have
+    ## 77.9% chance of a front consonant
+    ### 82.0% of which should be single
+    ## A vowel 100% of the time
+    ### 89.1% of which should be single
+    ## 68.2% chance of an ending consonant
+    ### 82.4% of which should be single
+    front.closed <- (sample(1:1000,1) <= 779)
+    front.single <- (sample(1:1000,1) <= 820)
+    vowel.single <- (sample(1:1000,1) <= 891)
+    end.closed <- (sample(1:1000,1) <= 682)
+    end.single <- (sample(1:1000,1) <= 824)
+    syll <- ""
+    if(front.closed){
+        if(front.single){
+            syll <- paste(syll, sample(consonants,1), sep="")
+        }else{
+            syll <- paste(syll, sample(dConsonants,1), sep="")
+        }
+    }
+    if(vowel.single){
+            syll <- paste(syll, sample(vowels,1), sep="")
+        }else{
+            syll <- paste(syll, sample(dVowels,1), sep="")
+    }
+    if(end.closed){
+        if(end.single){
+            syll <- paste(syll, sample(consonants,1), sep="")
+        }else{
+            syll <- paste(syll, sample(dConsonants,1), sep="")
+        }
+    }
+    return(syll)
+}
+```
+
+####Testing
+
+```{r}
+words2 = vector()
+for(i in 1:100){
+    word <- syllableV2()
+    word <- paste(word, syllableV2(), sep="")
+    words2 <- c(words2, word)
+}
+head(words2)
+```
 
 
 ###Conclusion

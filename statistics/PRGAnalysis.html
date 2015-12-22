@@ -437,10 +437,10 @@ inference(y=ends$length,est='proportion',type=&quot;ci&quot;,method=&quot;theore
 <li>between 87.7 and 90.5% single vowels, and</li>
 <li>between 80.3 and 84.4% single ending consonants.</li>
 </ul>
-<p>A procedural algorithm for generating syllables from this pattern should be able to work through the syllable from front to back, so we also need to obtain the proportion of fully closed syllables given a closed front. Since these variables are dependent we use Baye’s Theorem:</p>
+<p>A procedural algorithm for generating syllables from this pattern should be able to work through the syllable from front to back, so we also need to obtain the proportion of fully closed syllables given a closed front. Since these variables are dependent we use Bayes’ Theorem:</p>
 <p><span class="math">\[P(A | B) = P(A &amp; B)/P(B)\]</span></p>
-<p><span class="math">\[P(both | front) = P(both &amp; front)/P(front)\]</span></p>
-<p><span class="math">\[P(both | front) = P(front)* P(front|both)/P(front)\]</span></p>
+<p><span class="math">\[P(end | front) = P(end &amp; front)/P(front)\]</span></p>
+<p><span class="math">\[P(end | front) = P(both)/P(front)\]</span></p>
 <pre class="r"><code>dictionary$all_closed_front[dictionary$len_start_cons != 0]&lt;-&quot;closed.front&quot;
 dictionary$all_closed_front[dictionary$len_start_cons == 0 ]&lt;-&quot;open.front&quot;
 #head(dictionary)
@@ -450,14 +450,99 @@ inference(y=dictionary$all_closed_front,est='proportion',type=&quot;ci&quot;,met
 ## Check conditions: number of successes = 1563 ; number of failures = 444 
 ## Standard error = 0.0093 
 ## 95 % Confidence interval = ( 0.7606 , 0.7969 )</code></pre>
-<p>The expected proportion of all syllables with a closed front is between about 77.9%, and the proportion of all closed syllables is about 53.1%. The probability of a syllable having a closed front given being closed on both sides is 1, so plugging in yields</p>
-<p><span class="math">\[P(both | front) = P(front)* 1/P(front)\]</span></p>
-<p>=1?</p>
+<p>The expected proportion of all syllables with a closed front is between about 77.9%, and the proportion of fully closed syllables is about 53.1%. Plugging in yields</p>
+<p><span class="math">\[P(end | front) = .531/.779 = 68.2%\]</span></p>
 </div>
 </div>
 </div>
 <div id="revising-the-random-name-generator" class="section level3">
 <h3>Revising the Random Name Generator</h3>
+<p>With this information, we can now improve the syllable generation function. Syllable classes will be determined using the estimated population proportions in a linear fashion, and blends will be kept in a separate set from the single consonants and vowels. We will no longer be needing a separate ending consonant set.</p>
+<pre class="r"><code>#This is modified xVowel generation code, no longer including the single vowels or y and w
+vowels &lt;- unlist(strsplit(&quot;aeiou&quot;,&quot;&quot;))
+dVowels &lt;- vector()
+for(i in 1:5){ #Make controlled vowels for a-u.
+    dVowels &lt;- c(dVowels, paste(vowels[i],&quot;r&quot;,sep=&quot;&quot;))
+    #Digraph time!
+    if (vowels[i] == &quot;a&quot; || vowels[i] ==&quot;o&quot;){ #A's and O's
+        for(j in 1:5){ #combine with aeiou
+            dVowels &lt;- c(dVowels,paste(vowels[i],vowels[j], sep=&quot;&quot;))
+            }
+        } else if(vowels[i] == &quot;i&quot; || vowels[i] == &quot;u&quot;){ #I's and U's
+            for(j in 2:3){ #combine with ei
+                dVowels &lt;- c(dVowels,paste(vowels[i],vowels[j], sep=&quot;&quot;))
+                }
+            }else if(vowels[i] == &quot;e&quot;){ #E's
+                for(j in 1:5){ #combine with aeiu
+                    if(j!=4){ #skip o
+                        dVowels &lt;- c(dVowels,paste(vowels[i],vowels[j], sep=&quot;&quot;))
+                        }
+                    }
+                }
+    }
+
+dConsonants = c(consonants,&quot;ch&quot;,&quot;wh&quot;,&quot;th&quot;,&quot;ph&quot;,&quot;sh&quot;,&quot;gh&quot;,&quot;st&quot;,&quot;squ&quot;)#An extended consonant
+eConsonants = c(dConsonants,&quot;pt&quot;,&quot;ft&quot;,&quot;ct&quot;,&quot;lt&quot;,&quot;rr&quot;,&quot;ll&quot;,&quot;zz&quot;,&quot;ss&quot;,&quot;ff&quot;,&quot;sque&quot;) #Ending consonant
+l = length(dConsonants)
+for(i in 1:l){
+            #Digraph time! Adding r's
+            if(dConsonants[i]!=&quot;q&quot; &amp;&amp; dConsonants[i]!=&quot;r&quot; &amp;&amp; dConsonants[i]!=&quot;l&quot; &amp;&amp; dConsonants[i]!=&quot;z&quot; &amp;&amp;dConsonants[i]!=&quot;s&quot; &amp;&amp; dConsonants[i]!=&quot;y&quot; &amp;&amp; dConsonants[i]!=&quot;h&quot; &amp;&amp; dConsonants[i]!=&quot;j&quot; &amp;&amp; dConsonants[i]!=&quot;n&quot; &amp;&amp; dConsonants[i]!=&quot;m&quot; &amp;&amp; dConsonants[i]!=&quot;x&quot; &amp;&amp; dConsonants[i]!=&quot;wh&quot; &amp;&amp; dConsonants[i]!=&quot;gh&quot; &amp;&amp; dConsonants[i]!=&quot;pt&quot; &amp;&amp; dConsonants[i]!=&quot;ft&quot; &amp;&amp; dConsonants[i]!=&quot;ct&quot; &amp;&amp; dConsonants[i]!=&quot;lt&quot; &amp;&amp; dConsonants[i]!=&quot;squ&quot;){
+               dConsonants &lt;- c(dConsonants, paste(dConsonants[i],&quot;r&quot;,sep=&quot;&quot;))
+            }
+            #Not all q's need u's, but some should have them
+            if(dConsonants[i]==&quot;q&quot;){
+               dConsonants &lt;- c(dConsonants,&quot;qu&quot;)
+            }
+            
+         }
+#We no longer need to include an empty string as a consonant.</code></pre>
+<p>And the revised syllable function:</p>
+<pre class="r"><code>syllableV2 &lt;- function(){
+    # \s Revised to have
+    ## 77.9% chance of a front consonant
+    ### 82.0% of which should be single
+    ## A vowel 100% of the time
+    ### 89.1% of which should be single
+    ## 68.2% chance of an ending consonant
+    ### 82.4% of which should be single
+    front.closed &lt;- (sample(1:1000,1) &lt;= 779)
+    front.single &lt;- (sample(1:1000,1) &lt;= 820)
+    vowel.single &lt;- (sample(1:1000,1) &lt;= 891)
+    end.closed &lt;- (sample(1:1000,1) &lt;= 682)
+    end.single &lt;- (sample(1:1000,1) &lt;= 824)
+    syll &lt;- &quot;&quot;
+    if(front.closed){
+        if(front.single){
+            syll &lt;- paste(syll, sample(consonants,1), sep=&quot;&quot;)
+        }else{
+            syll &lt;- paste(syll, sample(dConsonants,1), sep=&quot;&quot;)
+        }
+    }
+    if(vowel.single){
+            syll &lt;- paste(syll, sample(vowels,1), sep=&quot;&quot;)
+        }else{
+            syll &lt;- paste(syll, sample(dVowels,1), sep=&quot;&quot;)
+    }
+    if(end.closed){
+        if(end.single){
+            syll &lt;- paste(syll, sample(consonants,1), sep=&quot;&quot;)
+        }else{
+            syll &lt;- paste(syll, sample(dConsonants,1), sep=&quot;&quot;)
+        }
+    }
+    return(syll)
+}</code></pre>
+<div id="testing" class="section level4">
+<h4>Testing</h4>
+<pre class="r"><code>words2 = vector()
+for(i in 1:100){
+    word &lt;- syllableV2()
+    word &lt;- paste(word, syllableV2(), sep=&quot;&quot;)
+    words2 &lt;- c(words2, word)
+}
+head(words2)</code></pre>
+<pre><code>## [1] &quot;jugyes&quot;    &quot;niene&quot;     &quot;hobrrav&quot;   &quot;atgey&quot;     &quot;payag&quot;     &quot;juvrchruw&quot;</code></pre>
+</div>
 </div>
 <div id="conclusion" class="section level3">
 <h3>Conclusion</h3>
