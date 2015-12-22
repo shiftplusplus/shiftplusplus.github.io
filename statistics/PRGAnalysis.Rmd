@@ -461,7 +461,7 @@ head(words2)
 
 ### Appendices
 
-#### Appendix 1: Generated Words
+#### Appendix 1: Generated Words from Original Formula
 ```{r echo=FALSE}
 print(words)
 ```
@@ -505,3 +505,9 @@ The following pages were sampled from The American Heritage (R) College Dictiona
  * 201: cable television - -cade
  * 1441: Tyllich - timeous
  * 1134: putamen - pycnogonid
+
+#### Appendix 3: Generated Words from Revised Formula
+```{r echo=FALSE}
+print(words2)
+```
+
