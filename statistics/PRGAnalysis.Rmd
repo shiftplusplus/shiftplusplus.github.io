@@ -360,7 +360,7 @@ $$P(end | front) = .531/.779 = 68.2%$$
 
 ###Revising the Random Name Generator
 
-With this information, we can now improve the syllable generation function. Syllable classes will be determined using the estimated population proportions in a linear fashion, and blends will be kept in a separate set from the single consonants and vowels. We will no longer be needing a separate ending consonant set.
+With this information, we can now improve the syllable generation function. Syllable classes will be determined using the estimated population proportions in a linear fashion, and blends will be kept in a separate set from the single consonants and vowels. We still need a separate ending consonant digraph set to keep syllables from ending in a consonant flanked by two r's.
 
 ```{r}
 #This is modified xVowel generation code, no longer including the single vowels or y and w
@@ -386,8 +386,8 @@ for(i in 1:5){ #Make controlled vowels for a-u.
                 }
     }
 
-dConsonants = c(consonants,"ch","wh","th","ph","sh","gh","st","squ")#An extended consonant
-eConsonants = c(dConsonants,"pt","ft","ct","lt","rr","ll","zz","ss","ff","sque") #Ending consonant
+dConsonants = c("ch","wh","th","ph","sh","gh","st","squ")#An extended consonant
+eDConsonants = c(dConsonants,"pt","ft","ct","lt","rr","ll","zz","ss","ff","sque") #Ending consonant
 l = length(dConsonants)
 for(i in 1:l){
             #Digraph time! Adding r's
@@ -437,7 +437,7 @@ syllableV2 <- function(){
         if(end.single){
             syll <- paste(syll, sample(consonants,1), sep="")
         }else{
-            syll <- paste(syll, sample(dConsonants,1), sep="")
+            syll <- paste(syll, sample(eDConsonants,1), sep="")
         }
     }
     return(syll)
@@ -454,6 +454,26 @@ for(i in 1:100){
     words2 <- c(words2, word)
 }
 head(words2)
+```
+
+The computer voice synthesization test also worked well, and this time I could only identify 3 words as being somewhat more difficult.
+
+Mathematical characteristics:
+
+```{r}
+lengths2 = vector()
+for(word in words2){
+    lengths2 <- c(lengths2,length(unlist(strsplit(word,""))))
+}
+summary(lengths2)
+qqnorm(lengths2, main="Lengths of Generated Words v2")
+qqline(lengths2)
+```
+
+Note only did these words more consistently read as 2 syllables, they were substantially shorter, ranging from 3 to 10 letters, and were no longer distributed normally. The effect of the revised generator function can be demonstrated by this boxplot:
+
+```{r}
+boxplot(lengths,lengths2, names=c("Original","Revised"))
 ```
 
 
@@ -511,3 +531,8 @@ The following pages were sampled from The American Heritage (R) College Dictiona
 print(words2)
 ```
 
+The less pronounceable were:
+```{r echo=FALSE}
+lp2 <- c(19,37,98)
+print(words2[lp2])
+```
