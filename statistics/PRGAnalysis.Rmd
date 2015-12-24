@@ -470,10 +470,23 @@ qqnorm(lengths2, main="Lengths of Generated Words v2")
 qqline(lengths2)
 ```
 
-Note only did these words more consistently read as 2 syllables, they were substantially shorter, ranging from 3 to 10 letters, and were no longer distributed normally. The effect of the revised generator function can be demonstrated by this boxplot:
+Note only did these words more consistently read as 2 syllables, they were substantially shorter, ranging from 3 to 10 letters, and were no longer distributed normally. The effect of the revised generator function can be demonstrated by comparing the lengths of the 2-syllable words from the old function, the new function, and the dataset:
 
 ```{r}
-boxplot(lengths,lengths2, names=c("Original","Revised"))
+twos <- subset(dictionary, syllables==2)
+lengths3 <- vector()
+len_so_far <- 0
+for(i in 1:nrow(twos)){
+    #row <- twos[i,]
+    if (i %%2 > 0) {
+        len_so_far <- nchar(twos[i,'start_cons'])+nchar(twos[i,'vowel'])+nchar(twos[i,'end_cons'])
+    }else{
+        length <- len_so_far + nchar(twos[i,'start_cons'])+nchar(twos[i,'vowel'])+nchar(twos[i,'end_cons'])
+        lengths3 <- c(lengths3, length)
+        len_so_far <-0
+    }
+}
+boxplot(lengths,lengths2,lengths3, names=c("Original","Revised","Data"))
 ```
 
 
