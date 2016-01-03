@@ -492,6 +492,12 @@ boxplot(lengths,lengths2,lengths3, names=c("Original","Revised","Data"))
 
 ###Conclusion
 
+The quality of the Random Name Generator's output was able to be improved by imitating the proportions of syllable structures from English words. The syllable function should also be able to be tuned to specific characteristics by taking proportions from other corpora, such as a definitive survey of the English language, surveys of actual names, or any other set of words you wished to emulate.
+
+The link between syllable structure and its placement in the word was too weak to attempt to imitate. Blocking for confounding variables such as part of speech and etymology may show a relationship that could then be imitated.
+
+The Random Name Generator might also be to imitate a given corpus in a more realistic manner by weighting the letters themselves. Further testing would be necessary to see if it is possible to make a procedurally generated random word generator using such techniques.
+
 ### Appendices
 
 #### Appendix 1: Generated Words from Original Formula
