@@ -1,7 +1,7 @@
 ---
 title: "Using Statistical Analysis to Improve a Random Name Generator"
 author: "Carson A. Elmore Jr."
-date: "November 21, 2015"
+date: "January 4, 2016"
 output:
     html_document:
         mathjax: default
@@ -497,6 +497,9 @@ The quality of the Random Name Generator's output was able to be improved by imi
 The link between syllable structure and its placement in the word was too weak to attempt to imitate. Blocking for confounding variables such as part of speech and etymology may show a relationship that could then be imitated.
 
 The Random Name Generator might also be to imitate a given corpus in a more realistic manner by weighting the letters themselves. Further testing would be necessary to see if it is possible to make a procedurally generated random word generator using such techniques.
+
+#### Revised version
+The [revised version](http://shiftplusplus.github.io/statistics/RandomGenv2.html) of the Random Name Generator is live.
 
 ### Appendices
 

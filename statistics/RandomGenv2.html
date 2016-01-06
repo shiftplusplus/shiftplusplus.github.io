@@ -227,6 +227,11 @@
          window.onload = function init(){
             pattern = new InputVar("pattern",generate);
             iterations = new InputVar("iterations",generate);
+            frontClosedThreshold = new InputVar("frontClosedThreshold");
+            frontSingleThreshold = new InputVar("frontSingleThreshold");
+            vowelSingleThreshold = new InputVar("vowelSingleThreshold");
+            endClosedThreshold = new InputVar("endClosedThreshold");
+            endSingleThreshold = new InputVar("endSingleThreshold");
          }
       function rchoose(arr){
          return arr[Math.floor((Math.random() * arr.length))];
@@ -254,11 +259,11 @@
                         ## 68.2% chance of an ending consonant
                         ### 82.4% of which should be single
         */
-        front_closed = Math.random()<=0.779;
-        front_single = Math.random()<=0.820;
-        vowel_single = Math.random()<=0.891;
-        end_closed = Math.random()<=0.682;
-        end_single = Math.random()<=0.824;
+        front_closed = Math.random()<=frontClosedThreshold.val();
+        front_single = Math.random()<=frontSingleThreshold.val();
+        vowel_single = Math.random()<=vowelSingleThreshold.val();
+        end_closed = Math.random()<=endClosedThreshold.val();
+        end_single = Math.random()<=endSingleThreshold.val();
         syll = ""
         if(front_closed || open != undefined){
             if(front_single){
@@ -409,7 +414,7 @@
             font-family: "Avenir Next", "Helvetica Neue", "sans-serif";
          }
       .left {
-         width: 30%;
+         width: 35%;
          float:left;
          clear:left;
       }
@@ -426,7 +431,7 @@
       </style>
    </head>
    <body>
-      <h1>Pronounceable Random Word Generator<span style="font-size: 0.5em"> v2.0</span></h1>
+      <h1>Pronounceable Random Word Generator<span style="font-size: 0.5em"> v2.1</span></h1>
       <div class="left">
       <p>
          <label for="pattern">Pattern</label>
@@ -435,6 +440,28 @@
          <br></br>
          <label for="iterations">Versions</label>
          <input type="number" min="1" max="100" step="5" value="10" id="iterations"></input>
+         <br></br>
+         <hr />
+         Syllable weights (Decimal &permil;)<br />
+         <!--
+# \s Revised to have
+## 77.9% chance of a front consonant
+### 82.0% of which should be single
+## A vowel 100% of the time
+### 89.1% of which should be single
+## 68.2% chance of an ending consonant
+### 82.4% of which should be single
+         -->
+         <label for="frontClosedThreshold">Front Closed Threshold</label>
+            <input type="number" id="frontClosedThreshold" value="0.779" min="0" max="1" step="0.001" /> Default 0.779<br/>
+        <label for="frontSingleThreshold">Front Single Threshold</label>
+            <input type="number" id="frontSingleThreshold" value="0.820" min="0" max="1" step="0.001" /> Default 0.820<br/>
+        <label for="frontClosedThreshold">Vowel Single Threshold</label>
+            <input type="number" id="vowelSingleThreshold" value="0.891" min="0" max="1" step="0.001" /> Default 0.891<br/>
+        <label for="frontClosedThreshold">End Closed Threshold</label>
+            <input type="number" id="endClosedThreshold" value="0.682" min="0" max="1" step="0.001" /> Default 0.682<br/>
+        <label for="frontClosedThreshold">End Single Threshold</label>
+            <input type="number" id="endSingleThreshold" value="0.824" min="0" max="1" step="0.001" /> Default 0.824<br/>
       </p>
       </div>
       <div class="right">
@@ -474,6 +501,9 @@
             <li><b>\O</b> A capitalized open syllable</li>
             <li><b>\L</b> A capitalized closed syllable</li>
          <ul>
+      </p>
+      <p>
+      For more information on the syllable weighting system, see <a href="PRGAnalysis.html">Using Statistical Analysis to Improve a Random Name Generator</a>.
       </p>
 	<p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">Pronounceable Random Word Generator</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Carson A. Elmore Jr.</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</p>
       </div>
