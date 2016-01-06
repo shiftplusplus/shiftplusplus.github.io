@@ -130,7 +130,7 @@ qqline(lengths)
 
 Lengths for these ostensibly two-syllable words [^2] range from 5 to 13 characters, and they are distributed fairly normally about 9. This makes the average syllable length between 4 and 5 characters.
 
-[^2]: While most of the words could be be pronounced as two syllables, it occasionally made more sense to pronounce them as three. This is acceptable for a program whose main purpose is to generate fantastical names for fiction writing.
+[^2]: While most of the words could be pronounced as two syllables, it occasionally made more sense to pronounce them as three. This is acceptable for a program whose main purpose is to generate fantastical names for fiction writing.
 
 ```{r}
 xlengths = vector()
