@@ -277,7 +277,7 @@
         }else{
             syll += rchoose(dVowels);
         }
-        if(end_closed || open == false){
+        if((end_closed || open == false) && open != true){
             if(end_single){
                 syll += rchoose(consonants);
             }else{
