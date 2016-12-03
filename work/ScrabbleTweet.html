@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Scrabble Tweet</title>
+<script type="text/javascript" >
+	//class Tile. Has properties letter and value.
+	function Tile(charsetItem){
+		this.letter = charsetItem.letter;
+		this.value = charsetItem.value;
+		this.toHTML = function(){
+			var ret = "<span class='tile'>"+ this.letter + "<span class='points'>" + this.value + "</span></span><wbr>&#8203;";
+			return ret;
+		} 
+		this.toString = function(){
+			return this.letter;
+		}
+	}
+	//A Scrabble charset is an array of objects.
+    // Blanks *must* be at the beginning.
+	en_charset = [
+		{letter:"_",value:0, qty:2},
+		{letter:"E",value:1, qty:12},
+		{letter:"A",value:1, qty:9},
+		{letter:"I",value:1, qty:9},
+		{letter:"O",value:1, qty:8},
+		{letter:"N",value:1, qty:6},
+		{letter:"R",value:1, qty:6},
+		{letter:"T",value:1, qty:6},
+		{letter:"L",value:1, qty:4},
+		{letter:"S",value:1, qty:4},
+		{letter:"U",value:1, qty:4},
+		{letter:"D",value:2, qty:4},
+		{letter:"G",value:2, qty:3},
+		{letter:"B",value:3, qty:2},
+		{letter:"C",value:3, qty:2},
+		{letter:"M",value:3, qty:2},
+		{letter:"P",value:3, qty:2},
+		{letter:"F",value:4, qty:2},
+		{letter:"H",value:4, qty:2},
+		{letter:"V",value:4, qty:2},
+		{letter:"W",value:4, qty:2},
+		{letter:"Y",value:4, qty:2},
+		{letter:"K",value:5, qty:1},
+		{letter:"J",value:8, qty:1},
+		{letter:"X",value:8, qty:1},
+		{letter:"Q",value:10, qty:1},
+		{letter:"Z",value:10, qty:1}
+	];
+	var tiles = [];
+	var availableTiles = [];
+	var usedTiles = [];
+	function setup(charset){
+		for(var i=0; i<charset.length; i++){
+			for(var j=0; j<charset[i].qty; j++){
+				tiles.push(new Tile(charset[i]));
+			}
+		}
+		for(var i=0; i<tiles.length; i++){
+			availableTiles.push(tiles[i])
+		}
+		displayTiles();
+		document.getElementById("compose").oninput = checkInput;
+	}
+	
+	function displayTiles(){
+		var availableHTML = "";
+		for(var i=0; i<availableTiles.length; i++){
+			availableHTML += availableTiles[i].toHTML();
+		}
+		document.getElementById("available").innerHTML = availableHTML;
+		var usedHTML = "";
+			for(var i=0; i<usedTiles.length; i++){
+				usedHTML += usedTiles[i].toHTML();
+			}
+			document.getElementById("used").innerHTML = usedHTML;
+		
+	}
+	function checkInput(){
+		document.getElementById("enter").className = "valid";
+		availableTiles = [];
+		for(var i=0; i<tiles.length; i++){
+			availableTiles.push(tiles[i])
+		}
+		usedTiles = [];
+		var contents = this.value;
+		var charsUsed = contents.toUpperCase().replace(/[~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|_+=-\s]+/ig,"").split("");
+		document.getElementById("used").innerHTML = charsUsed;
+		existsFault = false;
+		for (var i = 0; i<charsUsed.length; i++){
+			ch = charsUsed[i];
+			foundMatch = false;
+			for(var j = 0; j<availableTiles.length; j++){
+				if(availableTiles[j] == ch){
+					usedTiles.push(availableTiles.splice(j,1)[0]);
+					foundMatch = true;
+					break;
+				}
+			}
+				//Use a blank, which if it exists will always be at the beginning
+			if(!foundMatch && availableTiles[0]=="_"){
+				usedTiles.push(availableTiles.splice(0,1)[0]);
+				foundMatch = true;
+			}else if(!foundMatch){
+				existsFault = true;
+			}
+
+		}
+		if(existsFault){
+			document.getElementById("enter").className = "invalid";
+			document.getElementById("score").innerHTML = "0";
+		}else{
+			var points = 0;
+			for(var i = 0; i<usedTiles.length; i++){
+				points += usedTiles[i].value;
+			}
+			document.getElementById("score").innerHTML = points;
+		}
+		
+		displayTiles();
+	}
+	//Wraps setup in an anonymous function so I can pass properties to it.
+	window.onload = function(){setup(en_charset)};
+	
+	</script>
+<style type="text/css">
+	* {
+		font-family: "Avenir Next", sans;
+	}
+	#available {
+		float:left;
+		clear:left;
+		width: 40%;
+	}
+	#used {
+		float:right;
+		clear:right;
+		width: 40%;
+	}
+	#enter, h1, h2 {
+		clear:both;
+		width: 60%;
+		padding: 1%;
+		margin-left: 20%;
+	}
+	#compose {
+		width: 95%;
+		
+	}
+	.tile{
+		width: 1.1em;
+		margin: 1px;
+		color: yellow;
+		background-color: brown;
+		border: 1px solid tan;
+	}
+	.points{
+		font-size: 25%;
+	}
+	.valid {
+		border: 5px solid rgb(100,255,100);
+		background-color: rgb(200,255,200);
+	}
+	.invalid {
+		border: 5px solid rgb(255,100,100);
+		background-color: rgb(255,200,200);
+	}
+</style>
+</head>
+<body>
+	<h1>Scrabble Tweet</h1>
+	<h2>
+		Compose a message using a Scrabble character set! 
+	</h2>
+	<p id="available">
+	</p>
+	<p id="used">
+	</p>
+	<p id="enter" class="valid">
+		<input type="text" id="compose" autofocus placeholder="Compose a message using Scrabble tiles.">
+		<br/>
+		<span id="score">47</span> points
+	</p>
+</body>
+</html>
